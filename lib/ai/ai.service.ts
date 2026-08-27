@@ -25,7 +25,7 @@ export const AIService = {
     rateLimitMap.set(userId, now);
 
     // --- Validate API key ---
-    const apiKey = process.env.OPENAI_API_KEY;
+    const apiKey = process.env.OPENAI_API_KEY || process.env.AI_API_KEY;
     if (!apiKey) {
       throw new Error("AI_UNAVAILABLE");
     }
