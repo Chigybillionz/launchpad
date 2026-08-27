@@ -46,8 +46,9 @@ export default function RegisterPage() {
     try {
       await register(name, email, password);
       router.push("/onboarding");
-    } catch {
-      setError("Something went wrong. Please try again.");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Something went wrong. Please try again.";
+      setError(message);
     } finally {
       setLoading(false);
     }

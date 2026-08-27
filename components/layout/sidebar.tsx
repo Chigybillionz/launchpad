@@ -8,6 +8,7 @@ import {
   Bookmark,
   User,
   Rocket,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
@@ -19,8 +20,11 @@ const SIDEBAR_ITEMS = [
   { label: "Profile", href: "/dashboard/profile", icon: User },
 ];
 
+import { useAuth } from "@/lib/auth-context";
+
 export function Sidebar() {
   const pathname = usePathname();
+  const { logout } = useAuth();
 
   return (
     <aside className="hidden w-56 shrink-0 border-r border-border/60 bg-sidebar md:flex md:flex-col">
@@ -62,7 +66,14 @@ export function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="border-t border-border/60 px-5 py-3">
+      <div className="border-t border-border/60 px-5 py-4 flex flex-col gap-3">
+        <button
+          onClick={logout}
+          className="flex items-center gap-3 text-sm font-medium text-sidebar-foreground/70 transition-colors hover:text-sidebar-foreground"
+        >
+          <LogOut className="size-4" />
+          Log out
+        </button>
         <p className="text-xs text-muted-foreground">
           &copy; {new Date().getFullYear()} Launchpad
         </p>

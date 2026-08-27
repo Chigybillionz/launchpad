@@ -8,122 +8,107 @@ import {
   useCallback,
 } from "react";
 import type { User } from "@/types";
+import { useRouter } from "next/navigation";
 
 interface AuthContextValue {
   user: User | null;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
-  logout: () => void;
-  updateProfile: (data: Partial<User>) => void;
-  completeOnboarding: (data: Partial<User>) => void;
+  login: (email: string, password: string) => Promise<User>;
+  register: (name: string, email: string, password: string) => Promise<User>;
+  logout: () => Promise<void>;
+  updateProfile: (data: Partial<User>) => void; // Used for frontend optimism currently
+  completeOnboarding: (data: Partial<User>) => void; // Used for frontend optimism currently
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-const STORAGE_KEY = "launchpad_user";
-
-function loadUser(): User | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as User) : null;
-  } catch {
-    return null;
-  }
-}
-
-function saveUser(user: User | null) {
-  if (typeof window === "undefined") return;
-  if (user) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
-  } else {
-    localStorage.removeItem(STORAGE_KEY);
-  }
-}
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
+
+  const fetchUser = useCallback(async () => {
+    try {
+      const res = await fetch("/api/auth/me");
+      if (res.ok) {
+        const json = await res.json();
+        setUser(json.data.user);
+      } else {
+        setUser(null);
+      }
+    } catch (error) {
+      console.error("Failed to fetch user:", error);
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setUser(loadUser());
-    setIsLoading(false);
-  }, []);
+    void fetchUser();
+  }, [fetchUser]);
 
-  const login = useCallback(async (email: string, _password: string) => {
-    void _password;
-    // Mock: simulate network delay, then create/load user
-    await new Promise((r) => setTimeout(r, 600));
-    const existing = loadUser();
-    if (existing && existing.email === email) {
-      setUser(existing);
-      return;
+  const login = useCallback(async (email: string, password: string) => {
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const json = await res.json();
+    if (!res.ok) {
+      throw new Error(json.error?.message || "Login failed");
     }
-    const newUser: User = {
-      id: crypto.randomUUID(),
-      name: email.split("@")[0],
-      email,
-      role: "",
-      experienceLevel: "beginner",
-      location: "",
-      skills: [],
-      interests: [],
-      goals: [],
-      createdAt: new Date().toISOString(),
-    };
-    setUser(newUser);
-    saveUser(newUser);
+
+    setUser(json.data.user);
+    return json.data.user;
   }, []);
 
   const register = useCallback(
-    async (name: string, email: string, _password: string) => {
-      void _password;
-      await new Promise((r) => setTimeout(r, 600));
-      const newUser: User = {
-        id: crypto.randomUUID(),
-        name,
-        email,
-        role: "",
-        experienceLevel: "beginner",
-        location: "",
-        skills: [],
-        interests: [],
-        goals: [],
-        createdAt: new Date().toISOString(),
-      };
-      setUser(newUser);
-      saveUser(newUser);
+    async (name: string, email: string, password: string) => {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json.error?.message || "Registration failed");
+      }
+
+      setUser(json.data.user);
+      return json.data.user;
     },
     []
   );
 
-  const logout = useCallback(() => {
-    setUser(null);
-    saveUser(null);
-  }, []);
+  const logout = useCallback(async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } finally {
+      setUser(null);
+      router.push("/login");
+    }
+  }, [router]);
 
+  // The following functions are placeholders that update local state.
+  // In a full implementation, they would make API calls to update the user record.
   const updateProfile = useCallback(
     (data: Partial<User>) => {
       if (!user) return;
-      const updated = { ...user, ...data };
+      const updated = { ...user, ...data } as User;
       setUser(updated);
-      saveUser(updated);
     },
     [user]
   );
 
   const completeOnboarding = useCallback(
     (data: Partial<User>) => {
-      const base = user ?? {
-        id: crypto.randomUUID(),
-        email: "",
-        createdAt: new Date().toISOString(),
-      };
-      const updated = { ...base, ...data } as User;
+      if (!user) return;
+      const updated = { ...user, ...data } as User;
       setUser(updated);
-      saveUser(updated);
     },
     [user]
   );

@@ -34,10 +34,15 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      await login(email, password);
-      router.push("/dashboard");
-    } catch {
-      setError("Something went wrong. Please try again.");
+      const user = await login(email, password);
+      if (!user.role) {
+        router.push("/onboarding");
+      } else {
+        router.push("/dashboard");
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Something went wrong. Please try again.";
+      setError(message);
     } finally {
       setLoading(false);
     }
