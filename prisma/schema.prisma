@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String   @id @default(uuid())
+  name            String
+  email           String   @unique
+  role            String
+  experienceLevel String
+  location        String
+  skills          String[]
+  interests       String[]
+  goals           String[]
+  workPreferences String[]
+  avatarUrl       String?
+  createdAt       DateTime @default(now())
+
+  savedOpportunities SavedOpportunity[]
+}
+
+model Opportunity {
+  id              String   @id @default(uuid())
+  title           String
+  organization    String
+  description     String
+  type            String
+  location        String
+  remote          Boolean
+  deadline        DateTime
+  requiredSkills  String[]
+  experienceLevel String
+  eligibility     String
+  applicationUrl  String
+  tags            String[]
+  createdAt       DateTime @default(now())
+  matchScore      Float?
+
+  savedBy        SavedOpportunity[]
+  readinessPlans ReadinessPlan[]
+}
+
+model SavedOpportunity {
+  id            String      @id @default(uuid())
+  userId        String
+  opportunityId String
+  status        String
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  opportunity   Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, opportunityId])
+}
+
+model ReadinessPlan {
+  id            String   @id @default(uuid())
+  opportunityId String
+  days          Json
+  generatedAt   DateTime @default(now())
+
+  opportunity   Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+}
