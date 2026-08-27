@@ -11,14 +11,15 @@ import {
   BookmarkPlus, 
   BookmarkMinus, 
   ArrowLeft,
-  Loader2
+  Loader2,
+  AlertTriangle
 } from "lucide-react";
 
 import { OpportunitiesService } from "@/lib/services/opportunities";
 import { SavedService } from "@/lib/services/saved";
 import { ReadinessService } from "@/lib/services/readiness";
 import { MatchedOpportunity, MatchExplanation } from "@/types/match";
-import { ReadinessPlan } from "@/types/readiness";
+import { ReadinessApiResponse } from "@/types/readiness";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -30,6 +31,12 @@ import { MatchExplanationView } from "./match-explanation-view";
 interface OpportunityDetailClientProps {
   id: string;
 }
+
+const LOADING_PHASES = [
+  "Analyzing your profile...",
+  "Comparing with opportunity requirements...",
+  "Building your readiness plan...",
+];
 
 export function OpportunityDetailClient({ id }: OpportunityDetailClientProps) {
   const router = useRouter();
@@ -43,9 +50,10 @@ export function OpportunityDetailClient({ id }: OpportunityDetailClientProps) {
   const [isSaved, setIsSaved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  const [readinessPlan, setReadinessPlan] = useState<ReadinessPlan | null>(null);
+  const [readinessResponse, setReadinessResponse] = useState<ReadinessApiResponse | null>(null);
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
   const [planError, setPlanError] = useState<string | null>(null);
+  const [loadingPhase, setLoadingPhase] = useState(0);
 
   useEffect(() => {
     async function loadData() {
@@ -103,13 +111,29 @@ export function OpportunityDetailClient({ id }: OpportunityDetailClientProps) {
     if (!data) return;
     setIsGeneratingPlan(true);
     setPlanError(null);
+    setLoadingPhase(0);
+
+    // Cycle through loading phases
+    const phaseInterval = setInterval(() => {
+      setLoadingPhase((prev) => {
+        if (prev < LOADING_PHASES.length - 1) return prev + 1;
+        return prev;
+      });
+    }, 2000);
+
     try {
-      const plan = await ReadinessService.generatePlan(id, data.match.missingSkills);
-      setReadinessPlan(plan);
+      const response = await ReadinessService.generatePlan(id);
+      setReadinessResponse(response);
+
+      // If AI was unavailable, show fallback message as a soft error
+      if (!response.aiAvailable && response.fallback) {
+        setPlanError(response.fallback.message);
+      }
     } catch (err) {
       console.error(err);
       setPlanError("Unable to generate your readiness plan. Please try again.");
     } finally {
+      clearInterval(phaseInterval);
       setIsGeneratingPlan(false);
     }
   };
@@ -243,15 +267,37 @@ export function OpportunityDetailClient({ id }: OpportunityDetailClientProps) {
                 opportunityId={id} 
                 onGeneratePlan={handleGeneratePlan}
                 isGenerating={isGeneratingPlan}
-                hasGenerated={!!readinessPlan}
+                hasGenerated={!!readinessResponse}
               />
-              {planError && (
-                <div className="p-4 text-sm text-destructive bg-destructive/10 rounded-lg border border-destructive/20 mt-4">
-                  {planError}
+
+              {/* Loading state with phases */}
+              {isGeneratingPlan && (
+                <div className="flex items-center gap-3 p-4 rounded-lg border bg-muted/30 animate-in fade-in duration-300">
+                  <Loader2 className="h-5 w-5 animate-spin text-primary shrink-0" />
+                  <span className="text-sm font-medium text-muted-foreground">
+                    {LOADING_PHASES[loadingPhase]}
+                  </span>
                 </div>
               )}
-              {readinessPlan && (
-                <ReadinessPlanView plan={readinessPlan} />
+
+              {/* Error / Fallback message */}
+              {planError && !isGeneratingPlan && (
+                <div className="flex items-start gap-3 p-4 text-sm rounded-lg border border-amber-500/20 bg-amber-500/5">
+                  <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-medium text-amber-700 dark:text-amber-400">{planError}</p>
+                    {readinessResponse?.fallback?.missingSkills && readinessResponse.fallback.missingSkills.length > 0 && (
+                      <p className="text-muted-foreground mt-1">
+                        Your deterministic analysis is still available above. Missing skills: {readinessResponse.fallback.missingSkills.join(", ")}.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Successful AI readiness plan */}
+              {readinessResponse?.readinessPlan && (
+                <ReadinessPlanView plan={readinessResponse.readinessPlan} />
               )}
             </section>
 

@@ -112,15 +112,17 @@ export function SkillGapAnalysis({ opportunityId, onGeneratePlan, isGenerating, 
         </div>
       </div>
 
-      {hasMissingSkills && !hasGenerated && (
+      {!hasGenerated && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-xl border bg-gradient-to-r from-primary/5 to-transparent">
           <div className="space-y-1 text-center sm:text-left">
             <h4 className="font-medium flex items-center justify-center sm:justify-start gap-2">
               <Sparkles className="h-4 w-4 text-primary" />
-              Bridge the Gap
+              {hasMissingSkills ? "Bridge the Gap" : "Strengthen Your Application"}
             </h4>
             <p className="text-sm text-muted-foreground">
-              Get a personalized, step-by-step AI readiness plan to master the missing skills.
+              {hasMissingSkills
+                ? "Get a personalized, step-by-step AI readiness plan to master the missing skills."
+                : "Get personalized interview prep and application advice to stand out."}
             </p>
           </div>
           <Button 
