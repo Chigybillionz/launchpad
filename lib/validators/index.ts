@@ -64,3 +64,6 @@ export const registerSchema = z.object({
   email: z.string().email("Invalid email address").toLowerCase(),
   password: z.string().min(8, "Password must be at least 8 characters long"),
 });
+
+export * from "./profile.validator";
+export * from "./opportunity.validator";

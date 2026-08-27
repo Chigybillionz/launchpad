@@ -7,8 +7,10 @@ import {
   Compass,
   Bookmark,
   User,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/auth-context";
 
 const MOBILE_NAV_ITEMS = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -19,6 +21,7 @@ const MOBILE_NAV_ITEMS = [
 
 export function MobileNav() {
   const pathname = usePathname();
+  const { logout } = useAuth();
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/60 surface-glass md:hidden">
@@ -54,6 +57,13 @@ export function MobileNav() {
             </Link>
           );
         })}
+        <button
+          onClick={logout}
+          className="flex flex-col items-center gap-0.5 rounded-lg px-3 py-1.5 text-[11px] font-medium transition-colors text-muted-foreground hover:text-foreground"
+        >
+          <LogOut className="size-5 transition-colors text-muted-foreground" />
+          <span>Logout</span>
+        </button>
       </div>
     </nav>
   );

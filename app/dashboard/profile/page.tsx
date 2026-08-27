@@ -35,7 +35,7 @@ export default function ProfilePage() {
       try {
         setIsLoading(true);
         setError(null);
-        const data = await ProfileService.getProfile(authUser.id);
+        const data = await ProfileService.getProfile();
         setProfile(data);
         setFormData(data);
       } catch {
@@ -62,7 +62,7 @@ export default function ProfilePage() {
     try {
       setIsSaving(true);
       setError(null);
-      const updated = await ProfileService.updateProfile(profile.id, formData);
+      const updated = await ProfileService.updateProfile(formData);
       setProfile(updated);
       setIsEditing(false);
       setSaveSuccess(true);

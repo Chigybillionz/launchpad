@@ -12,5 +12,6 @@ export interface User {
   goals: string[];
   workPreferences?: string[];
   avatarUrl?: string;
+  profileCompleted?: boolean;
   createdAt: string;
 }

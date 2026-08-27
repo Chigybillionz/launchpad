@@ -1,37 +1,57 @@
 import type { User } from "@/types";
 
-const STORAGE_KEY = "launchpad_user";
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
 export const ProfileService = {
-  async getProfile(_userId?: string): Promise<User> {
-    void _userId;
-    await delay(600); // Simulate network latency
-
-    if (typeof window === "undefined") {
-      throw new Error("Cannot fetch profile on server without DB connection");
+  async getProfile(): Promise<User> {
+    const res = await fetch("/api/profile");
+    const json = await res.json();
+    
+    if (!res.ok) {
+      throw new Error(json.error?.message || "User profile not found");
     }
 
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-      throw new Error("User profile not found");
-    }
-
-    return JSON.parse(raw) as User;
+    return json.data.profile;
   },
 
-  async updateProfile(_userId: string | undefined, data: Partial<User>): Promise<User> {
-    void _userId;
-    await delay(800); // Simulate network latency
+  async updateProfile(data: Partial<User>): Promise<User> {
+    const res = await fetch("/api/profile", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
 
-    if (typeof window === "undefined") {
-      throw new Error("Cannot update profile on server without DB connection");
+    const json = await res.json();
+    
+    if (!res.ok) {
+      throw new Error(json.error?.message || "Failed to update profile");
     }
 
-    const user = await this.getProfile(_userId);
-    const updatedUser = { ...user, ...data };
+    return json.data.profile;
+  },
+
+  async completeProfile(data: Partial<User>): Promise<User> {
+    const res = await fetch("/api/profile/complete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    const json = await res.json();
     
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedUser));
-    return updatedUser;
+    if (!res.ok) {
+      throw new Error(json.error?.message || "Failed to complete profile");
+    }
+
+    return json.data.profile;
+  },
+
+  async getProfileStatus(): Promise<{ profileCompleted: boolean }> {
+    const res = await fetch("/api/profile/status");
+    const json = await res.json();
+
+    if (!res.ok) {
+      throw new Error(json.error?.message || "Failed to get profile status");
+    }
+
+    return json.data;
   }
 };

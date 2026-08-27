@@ -8,19 +8,20 @@ datasource db {
 }
 
 model User {
-  id              String   @id @default(uuid())
-  name            String
-  email           String   @unique
-  role            String
-  experienceLevel String
-  location        String
-  skills          String[]
-  interests       String[]
-  goals           String[]
-  workPreferences String[]
-  avatarUrl       String?
-  passwordHash    String?
-  createdAt       DateTime @default(now())
+  id               String   @id @default(uuid())
+  name             String
+  email            String   @unique
+  role             String
+  experienceLevel  String
+  location         String
+  skills           String[]
+  interests        String[]
+  goals            String[]
+  workPreferences  String[]
+  avatarUrl        String?
+  passwordHash     String?
+  profileCompleted Boolean  @default(false)
+  createdAt        DateTime @default(now())
 
   savedOpportunities SavedOpportunity[]
   sessions           Session[]

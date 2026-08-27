@@ -1,5 +1,5 @@
 import { ApplicationStatus, SavedOpportunity } from "@/types/saved";
-import { mockOpportunities } from "./opportunities";
+import { OpportunitiesService } from "./opportunities";
 import { Opportunity } from "@/types/opportunity";
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -11,17 +11,22 @@ export interface PopulatedSavedOpportunity {
 
 export const SavedService = {
   async getSavedOpportunities(statusFilter: string = "all"): Promise<PopulatedSavedOpportunity[]> {
-    await delay(600);
     if (typeof window === "undefined") return [];
 
     const saved: SavedOpportunity[] = JSON.parse(localStorage.getItem("v2_saved_opportunities") || "[]");
     
-    const populated = saved
-      .map(record => ({
-        savedRecord: record,
-        opportunity: mockOpportunities.find(o => o.id === record.opportunityId)
-      }))
-      .filter(item => item.opportunity !== undefined) as PopulatedSavedOpportunity[];
+    // Fetch real opportunities for the saved IDs
+    const populatedPromises = saved.map(async (record) => {
+      try {
+        const { opportunity } = await OpportunitiesService.getOpportunityWithMatch(record.opportunityId);
+        return { savedRecord: record, opportunity };
+      } catch {
+        return null; // Opportunity might have been deleted
+      }
+    });
+
+    const resolved = await Promise.all(populatedPromises);
+    const populated = resolved.filter((item): item is PopulatedSavedOpportunity => item !== null);
 
     let sorted = populated.sort((a, b) => new Date(b.savedRecord.updatedAt).getTime() - new Date(a.savedRecord.updatedAt).getTime());
 

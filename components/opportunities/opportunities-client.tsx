@@ -28,7 +28,7 @@ const CATEGORIES = [
   "Startup Programs",
 ];
 
-const EXPERIENCE_LEVELS = ["All", "Entry Level", "Mid Level", "Senior", "Advanced", "Student"];
+const EXPERIENCE_LEVELS = ["All", "Beginner", "Intermediate", "Advanced"];
 
 export function OpportunitiesClient() {
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);

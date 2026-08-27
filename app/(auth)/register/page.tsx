@@ -44,8 +44,12 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      await register(name, email, password);
-      router.push("/onboarding");
+      const user = await register(name, email, password);
+      if (!user.profileCompleted) {
+        router.push("/onboarding");
+      } else {
+        router.push("/dashboard");
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Something went wrong. Please try again.";
       setError(message);
@@ -146,7 +150,7 @@ export default function RegisterPage() {
           />
         </div>
 
-        <Button className="w-full" disabled={loading}>
+        <Button type="submit" className="w-full" disabled={loading}>
           {loading && <Loader2 className="mr-1.5 size-4 animate-spin" />}
           Create Account
         </Button>

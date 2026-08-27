@@ -9,6 +9,7 @@ import {
 } from "react";
 import type { User } from "@/types";
 import { useRouter } from "next/navigation";
+import { ProfileService } from "@/lib/services/profile";
 
 interface AuthContextValue {
   user: User | null;
@@ -16,8 +17,8 @@ interface AuthContextValue {
   login: (email: string, password: string) => Promise<User>;
   register: (name: string, email: string, password: string) => Promise<User>;
   logout: () => Promise<void>;
-  updateProfile: (data: Partial<User>) => void; // Used for frontend optimism currently
-  completeOnboarding: (data: Partial<User>) => void; // Used for frontend optimism currently
+  updateProfile: (data: Partial<User>) => Promise<void>;
+  completeOnboarding: (data: Partial<User>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -93,22 +94,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [router]);
 
-  // The following functions are placeholders that update local state.
-  // In a full implementation, they would make API calls to update the user record.
   const updateProfile = useCallback(
-    (data: Partial<User>) => {
+    async (data: Partial<User>) => {
       if (!user) return;
-      const updated = { ...user, ...data } as User;
-      setUser(updated);
+      const updated = await ProfileService.updateProfile(data);
+      setUser({ ...user, ...updated });
     },
     [user]
   );
 
   const completeOnboarding = useCallback(
-    (data: Partial<User>) => {
+    async (data: Partial<User>) => {
       if (!user) return;
-      const updated = { ...user, ...data } as User;
-      setUser(updated);
+      const updated = await ProfileService.completeProfile(data);
+      setUser({ ...user, ...updated });
     },
     [user]
   );

@@ -101,7 +101,7 @@ export default function OnboardingPage() {
         experienceLevel: data.experienceLevel === "" ? undefined : data.experienceLevel
       };
       
-      completeOnboarding(submitData);
+      await completeOnboarding(submitData);
       router.push("/dashboard");
     } catch (error) {
       console.error("Failed to complete onboarding:", error);

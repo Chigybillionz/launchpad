@@ -35,7 +35,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const user = await login(email, password);
-      if (!user.role) {
+      if (!user.profileCompleted) {
         router.push("/onboarding");
       } else {
         router.push("/dashboard");
@@ -118,7 +118,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <Button className="w-full" disabled={loading}>
+        <Button type="submit" className="w-full" disabled={loading}>
           {loading && <Loader2 className="mr-1.5 size-4 animate-spin" />}
           Sign In
         </Button>
