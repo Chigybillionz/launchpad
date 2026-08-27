@@ -17,12 +17,7 @@ export interface ReadinessStep {
   resources: string[];
 }
 
-export interface MatchExplanation {
-  summary: string;
-  strengths: string[];
-  gaps: string[];
-  recommendations: string[];
-}
+
 
 export interface CareerAssistantMessage {
   id: string;

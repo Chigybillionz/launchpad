@@ -17,7 +17,7 @@ import {
 import { OpportunitiesService } from "@/lib/services/opportunities";
 import { SavedService } from "@/lib/services/saved";
 import { ReadinessService } from "@/lib/services/readiness";
-import { MatchedOpportunity } from "@/types/match";
+import { MatchedOpportunity, MatchExplanation } from "@/types/match";
 import { ReadinessPlan } from "@/types/readiness";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +25,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { MatchAnalysisCard } from "./match-analysis-card";
 import { SkillGapAnalysis } from "./skill-gap-analysis";
 import { ReadinessPlanView } from "./readiness-plan-view";
+import { MatchExplanationView } from "./match-explanation-view";
 
 interface OpportunityDetailClientProps {
   id: string;
@@ -36,6 +37,9 @@ export function OpportunityDetailClient({ id }: OpportunityDetailClientProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
+  const [explanation, setExplanation] = useState<MatchExplanation | null>(null);
+  const [isExplaining, setIsExplaining] = useState(true);
+
   const [isSaved, setIsSaved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -60,7 +64,21 @@ export function OpportunityDetailClient({ id }: OpportunityDetailClientProps) {
         setIsLoading(false);
       }
     }
+
+    async function loadExplanation() {
+      try {
+        setIsExplaining(true);
+        const explData = await OpportunitiesService.getOpportunityExplanation(id);
+        setExplanation(explData.explanation);
+      } catch (err) {
+        console.error("Failed to load explanation:", err);
+      } finally {
+        setIsExplaining(false);
+      }
+    }
+
     loadData();
+    loadExplanation();
   }, [id]);
 
   const toggleSave = useCallback(async () => {
@@ -208,6 +226,8 @@ export function OpportunityDetailClient({ id }: OpportunityDetailClientProps) {
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
           <div className="rounded-xl border bg-card p-6 md:p-8 space-y-8">
+            <MatchExplanationView explanation={explanation} isLoading={isExplaining} />
+
             <section className="space-y-3">
               <h2 className="text-lg font-semibold border-b pb-2">About the Opportunity</h2>
               <div className="text-muted-foreground leading-relaxed">

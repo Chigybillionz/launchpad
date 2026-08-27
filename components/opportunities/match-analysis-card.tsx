@@ -8,7 +8,7 @@ interface MatchAnalysisCardProps {
 }
 
 export function MatchAnalysisCard({ match }: MatchAnalysisCardProps) {
-  const { score, explanation, skillScore, experienceScore, locationScore, goalScore } = match;
+  const { score, label, reasons, breakdown } = match;
 
   let colorClass = "text-muted-foreground";
   if (score >= 90) colorClass = "text-green-500 dark:text-green-400";
@@ -24,12 +24,16 @@ export function MatchAnalysisCard({ match }: MatchAnalysisCardProps) {
         </div>
         <div className="flex items-baseline gap-2">
           <span className={`text-4xl font-bold ${colorClass}`}>{score}%</span>
-          <span className="text-lg font-medium text-muted-foreground">Match</span>
+          <span className="text-lg font-medium text-muted-foreground">{label}</span>
         </div>
-        {explanation && (
-          <CardDescription className="text-sm mt-3 text-foreground font-medium italic">
-            &ldquo;{explanation}&rdquo;
-          </CardDescription>
+        {reasons && reasons.length > 0 && (
+          <div className="mt-4 space-y-2">
+            {reasons.map((reason, i) => (
+              <CardDescription key={i} className="text-sm text-foreground font-medium italic">
+                &ldquo;{reason}&rdquo;
+              </CardDescription>
+            ))}
+          </div>
         )}
       </CardHeader>
       
@@ -37,33 +41,41 @@ export function MatchAnalysisCard({ match }: MatchAnalysisCardProps) {
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
             <span className="font-medium text-muted-foreground">Skills Match</span>
-            <span className="font-medium">{skillScore}%</span>
+            <span className="font-medium">{breakdown?.skills || 0}%</span>
           </div>
-          <Progress value={skillScore} className="h-2" />
+          <Progress value={breakdown?.skills || 0} className="h-2" />
         </div>
         
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
             <span className="font-medium text-muted-foreground">Experience Match</span>
-            <span className="font-medium">{experienceScore}%</span>
+            <span className="font-medium">{breakdown?.experience || 0}%</span>
           </div>
-          <Progress value={experienceScore} className="h-2" />
+          <Progress value={breakdown?.experience || 0} className="h-2" />
         </div>
 
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
             <span className="font-medium text-muted-foreground">Location Match</span>
-            <span className="font-medium">{locationScore}%</span>
+            <span className="font-medium">{breakdown?.location || 0}%</span>
           </div>
-          <Progress value={locationScore} className="h-2" />
+          <Progress value={breakdown?.location || 0} className="h-2" />
         </div>
 
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
             <span className="font-medium text-muted-foreground">Goal Match</span>
-            <span className="font-medium">{goalScore}%</span>
+            <span className="font-medium">{breakdown?.goals || 0}%</span>
           </div>
-          <Progress value={goalScore} className="h-2" />
+          <Progress value={breakdown?.goals || 0} className="h-2" />
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-sm">
+            <span className="font-medium text-muted-foreground">Interest Match</span>
+            <span className="font-medium">{breakdown?.interests || 0}%</span>
+          </div>
+          <Progress value={breakdown?.interests || 0} className="h-2" />
         </div>
       </CardContent>
     </Card>

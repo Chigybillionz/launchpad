@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Search, Loader2 } from "lucide-react";
 import { OpportunitiesService } from "@/lib/services/opportunities";
 import { Opportunity } from "@/types/opportunity";
+import { MatchedOpportunity } from "@/types/match";
 import { OpportunityCard } from "./opportunity-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -81,10 +82,11 @@ export function OpportunitiesClient() {
       });
 
       if (isLoadMore) {
-        setOpportunities((prev) => [...prev, ...response.data]);
+        const mapped = response.data.map((m: MatchedOpportunity) => ({ ...m.opportunity, matchScore: m.match.score }));
+        setOpportunities((prev) => [...prev, ...mapped]);
         setPage(currentPage);
       } else {
-        setOpportunities(response.data);
+        setOpportunities(response.data.map((m: MatchedOpportunity) => ({ ...m.opportunity, matchScore: m.match.score })));
       }
       
       setHasMore(response.hasMore);

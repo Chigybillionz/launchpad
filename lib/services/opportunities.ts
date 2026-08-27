@@ -1,5 +1,4 @@
-import { Opportunity } from "@/types/opportunity";
-import { MatchedOpportunity, MatchResult } from "@/types/match";
+import { MatchedOpportunity, MatchExplanation } from "@/types/match";
 
 export interface GetOpportunitiesParams {
   search?: string;
@@ -23,7 +22,7 @@ export const OpportunitiesService = {
     if (params.page) searchParams.set("page", params.page.toString());
     if (params.limit) searchParams.set("limit", params.limit.toString());
 
-    const res = await fetch(`/api/opportunities?${searchParams.toString()}`);
+    const res = await fetch(`/api/matches?${searchParams.toString()}`);
     const json = await res.json();
 
     if (!res.ok) {
@@ -31,7 +30,7 @@ export const OpportunitiesService = {
     }
 
     return {
-      data: json.data.opportunities,
+      data: json.data.matches,
       total: json.data.pagination.total,
       page: json.data.pagination.page,
       limit: json.data.pagination.limit,
@@ -40,36 +39,25 @@ export const OpportunitiesService = {
   },
 
   async getOpportunityWithMatch(id: string): Promise<MatchedOpportunity> {
-    const res = await fetch(`/api/opportunities/${id}`);
+    const res = await fetch(`/api/matches/${id}`);
     const json = await res.json();
 
     if (!res.ok) {
       throw new Error(json.error?.message || "Opportunity not found");
     }
 
-    const opportunity: Opportunity = json.data.opportunity;
+    return json.data;
+  },
 
-    // Placeholder match analysis based on the opportunity (to be replaced in Task 05)
-    const baseScore = 75;
-    const matchedSkills = opportunity.requiredSkills.slice(0, Math.max(1, opportunity.requiredSkills.length - 1));
-    const missingSkills = opportunity.requiredSkills.slice(Math.max(1, opportunity.requiredSkills.length - 1));
+  async getOpportunityExplanation(id: string): Promise<{ match: MatchedOpportunity["match"]; explanation: MatchExplanation }> {
+    const res = await fetch(`/api/matches/${id}/explanation`);
+    const json = await res.json();
 
-    const match: MatchResult = {
-      score: baseScore,
-      skillScore: Math.min(100, baseScore + 5),
-      experienceScore: baseScore - 5,
-      locationScore: opportunity.remote ? 100 : 80,
-      interestScore: Math.min(100, baseScore + 10),
-      goalScore: baseScore,
-      matchedSkills,
-      missingSkills,
-      explanation: `You already have ${matchedSkills.join(", ")} experience, which closely matches the core requirements for this ${opportunity.type}.`,
-    };
+    if (!res.ok) {
+      throw new Error(json.error?.message || "Explanation not found");
+    }
 
-    return {
-      opportunity,
-      match,
-    };
+    return json.data;
   },
 
   // Mock save functionality

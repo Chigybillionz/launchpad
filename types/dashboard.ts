@@ -9,6 +9,7 @@ export interface DashboardSummary {
 
 export interface TopOpportunity extends Opportunity {
   matchPercentage: number;
+  recommendationReason?: string;
 }
 
 export interface ApplicationProgress {

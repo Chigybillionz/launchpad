@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { DashboardService } from "@/lib/services/dashboard";
+import { OpportunitiesService } from "@/lib/services/opportunities";
 import type { DashboardData } from "@/types";
+import type { MatchedOpportunity } from "@/types/match";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -35,7 +37,19 @@ export default function DashboardPage() {
       if (!authUser) return;
       try {
         setIsLoading(true);
-        const dashboardData = await DashboardService.getDashboardData(authUser.id);
+        const [dashboardData, matchesData] = await Promise.all([
+          DashboardService.getDashboardData(authUser.id),
+          OpportunitiesService.getOpportunities({ limit: 5 }).catch(() => null)
+        ]);
+
+        if (matchesData) {
+          dashboardData.topOpportunities = matchesData.data.map((m: MatchedOpportunity) => ({
+            ...m.opportunity,
+            matchPercentage: m.match.score,
+            recommendationReason: m.recommendationReason
+          }));
+        }
+
         setData(dashboardData);
       } catch (err) {
         // Fallback handled, but we ignore errors in mock layer for now
@@ -178,6 +192,12 @@ export default function DashboardPage() {
                         <span>Ends {new Date(opp.deadline).toLocaleDateString()}</span>
                       </div>
                     </div>
+                    
+                    {opp.recommendationReason && (
+                      <div className="text-sm mt-2 font-medium text-primary/80 italic">
+                        {opp.recommendationReason}
+                      </div>
+                    )}
                   </div>
                   
                   <div className="flex sm:flex-col justify-end sm:justify-center mt-2 sm:mt-0">
