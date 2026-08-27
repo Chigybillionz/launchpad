@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   Compass,
   Bookmark,
+  Briefcase,
   User,
   LogOut,
 } from "lucide-react";
@@ -16,6 +17,7 @@ const MOBILE_NAV_ITEMS = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Opportunities", href: "/dashboard/opportunities", icon: Compass },
   { label: "Saved", href: "/dashboard/saved", icon: Bookmark },
+  { label: "Apps", href: "/dashboard/applications", icon: Briefcase },
   { label: "Profile", href: "/dashboard/profile", icon: User },
 ];
 

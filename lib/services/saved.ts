@@ -1,94 +1,70 @@
-import { ApplicationStatus, SavedOpportunity } from "@/types/saved";
-import { OpportunitiesService } from "./opportunities";
 import { Opportunity } from "@/types/opportunity";
-
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+import { Pagination, SavedOpportunity } from "@/types/saved";
 
 export interface PopulatedSavedOpportunity {
-  savedRecord: SavedOpportunity;
+  id: string;
+  createdAt: string;
   opportunity: Opportunity;
 }
 
+export interface SavedListResponse {
+  items: PopulatedSavedOpportunity[];
+  pagination: Pagination;
+}
+
 export const SavedService = {
-  async getSavedOpportunities(statusFilter: string = "all"): Promise<PopulatedSavedOpportunity[]> {
-    if (typeof window === "undefined") return [];
+  async getSavedOpportunities(page = 1, limit = 10): Promise<SavedListResponse> {
+    const res = await fetch(`/api/saved-opportunities?page=${page}&limit=${limit}`);
+    const json = await res.json();
 
-    const saved: SavedOpportunity[] = JSON.parse(localStorage.getItem("v2_saved_opportunities") || "[]");
-    
-    // Fetch real opportunities for the saved IDs
-    const populatedPromises = saved.map(async (record) => {
-      try {
-        const { opportunity } = await OpportunitiesService.getOpportunityWithMatch(record.opportunityId);
-        return { savedRecord: record, opportunity };
-      } catch {
-        return null; // Opportunity might have been deleted
-      }
+    if (!res.ok || !json.success) {
+      throw new Error(json.error?.message || "Failed to load saved opportunities");
+    }
+
+    return json.data;
+  },
+
+  async saveOpportunity(opportunityId: string): Promise<{ saved: true }> {
+    const res = await fetch("/api/saved-opportunities", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ opportunityId }),
     });
+    const json = await res.json();
 
-    const resolved = await Promise.all(populatedPromises);
-    const populated = resolved.filter((item): item is PopulatedSavedOpportunity => item !== null);
-
-    let sorted = populated.sort((a, b) => new Date(b.savedRecord.updatedAt).getTime() - new Date(a.savedRecord.updatedAt).getTime());
-
-    if (statusFilter !== "all") {
-      sorted = sorted.filter(item => item.savedRecord.status === statusFilter);
+    if (!res.ok || !json.success) {
+      throw new Error(json.error?.message || "Failed to save opportunity");
     }
 
-    return sorted;
+    return json.data;
   },
 
-  async saveOpportunity(opportunityId: string): Promise<SavedOpportunity> {
-    await delay(400);
-    if (typeof window === "undefined") throw new Error("Window is undefined");
+  async removeSaved(opportunityId: string): Promise<{ saved: false }> {
+    const res = await fetch(`/api/saved-opportunities/${opportunityId}`, {
+      method: "DELETE",
+    });
+    const json = await res.json();
 
-    const saved: SavedOpportunity[] = JSON.parse(localStorage.getItem("v2_saved_opportunities") || "[]");
-    
-    let record = saved.find(s => s.opportunityId === opportunityId);
-    if (!record) {
-      record = {
-        id: Math.random().toString(36).substring(2, 9),
-        userId: "user_1",
-        opportunityId,
-        status: "saved",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      saved.push(record);
-      localStorage.setItem("v2_saved_opportunities", JSON.stringify(saved));
+    if (!res.ok || !json.success) {
+      throw new Error(json.error?.message || "Failed to remove saved opportunity");
     }
-    
-    return record;
+
+    return json.data;
   },
 
-  async updateStatus(opportunityId: string, status: ApplicationStatus): Promise<void> {
-    await delay(400);
-    if (typeof window === "undefined") return;
+  async isSaved(opportunityId: string): Promise<boolean> {
+    const res = await fetch(`/api/saved-opportunities/${opportunityId}`);
+    const json = await res.json();
 
-    const saved: SavedOpportunity[] = JSON.parse(localStorage.getItem("v2_saved_opportunities") || "[]");
-    const index = saved.findIndex(s => s.opportunityId === opportunityId);
-    
-    if (index !== -1) {
-      saved[index].status = status;
-      saved[index].updatedAt = new Date().toISOString();
-      localStorage.setItem("v2_saved_opportunities", JSON.stringify(saved));
+    if (!res.ok || !json.success) {
+      throw new Error(json.error?.message || "Failed to load saved status");
     }
+
+    return Boolean(json.data.saved);
   },
 
-  async removeSaved(opportunityId: string): Promise<void> {
-    await delay(400);
-    if (typeof window === "undefined") return;
-
-    let saved: SavedOpportunity[] = JSON.parse(localStorage.getItem("v2_saved_opportunities") || "[]");
-    saved = saved.filter(s => s.opportunityId !== opportunityId);
-    localStorage.setItem("v2_saved_opportunities", JSON.stringify(saved));
+  async checkStatus(opportunityId: string): Promise<SavedOpportunity | null> {
+    const saved = await this.isSaved(opportunityId);
+    return saved ? { id: "", userId: "", opportunityId, createdAt: new Date().toISOString() } : null;
   },
-
-  async checkStatus(opportunityId: string): Promise<ApplicationStatus | null> {
-    await delay(200);
-    if (typeof window === "undefined") return null;
-
-    const saved: SavedOpportunity[] = JSON.parse(localStorage.getItem("v2_saved_opportunities") || "[]");
-    const record = saved.find(s => s.opportunityId === opportunityId);
-    return record ? record.status : null;
-  }
 };

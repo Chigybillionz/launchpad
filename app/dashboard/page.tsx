@@ -4,16 +4,16 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { DashboardService } from "@/lib/services/dashboard";
 import { OpportunitiesService } from "@/lib/services/opportunities";
+import { ApplicationsService, DashboardStatsResponse } from "@/lib/services/applications";
 import type { DashboardData } from "@/types";
 import type { MatchedOpportunity } from "@/types/match";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SkillsToStrengthen } from "@/components/dashboard/skills-to-strengthen";
+import { ApplicationStatusBadge } from "@/components/applications/application-status-badge";
 import { 
-  Target, 
-  Flame, 
   Briefcase, 
   BookOpen,
   ArrowRight,
@@ -30,6 +30,7 @@ import Link from "next/link";
 export default function DashboardPage() {
   const { user: authUser, isLoading: isAuthLoading } = useAuth();
   const [data, setData] = useState<DashboardData | null>(null);
+  const [stats, setStats] = useState<DashboardStatsResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -37,9 +38,10 @@ export default function DashboardPage() {
       if (!authUser) return;
       try {
         setIsLoading(true);
-        const [dashboardData, matchesData] = await Promise.all([
+        const [dashboardData, matchesData, dashboardStats] = await Promise.all([
           DashboardService.getDashboardData(authUser.id),
-          OpportunitiesService.getOpportunities({ limit: 5 }).catch(() => null)
+          OpportunitiesService.getOpportunities({ limit: 5 }).catch(() => null),
+          ApplicationsService.getDashboardStats().catch(() => null)
         ]);
 
         if (matchesData) {
@@ -51,6 +53,7 @@ export default function DashboardPage() {
         }
 
         setData(dashboardData);
+        setStats(dashboardStats);
       } catch (err) {
         // Fallback handled, but we ignore errors in mock layer for now
         console.error(err);
@@ -101,21 +104,24 @@ export default function DashboardPage() {
     );
   }
 
-  const { summary, topOpportunities, applicationProgress, skillReadiness, recentActivity } = data;
+  const { summary, topOpportunities, applicationProgress, recentActivity } = data;
+  const savedCount = stats?.saved ?? applicationProgress.saved;
+  const applicationsCount = stats?.applications ?? summary.applications;
+  const interviewsCount = stats?.interviews ?? applicationProgress.interview;
+  const acceptedCount = stats?.accepted ?? applicationProgress.accepted;
 
   const SUMMARY_CARDS = [
-    { title: "Relevant Opportunities", value: summary.relevantOpportunities, icon: Target, color: "text-blue-500", bg: "bg-blue-500/10" },
-    { title: "Strong Matches", value: summary.strongMatches, icon: Flame, color: "text-orange-500", bg: "bg-orange-500/10" },
-    { title: "Applications", value: summary.applications, icon: Briefcase, color: "text-green-500", bg: "bg-green-500/10" },
-    { title: "Skills To Improve", value: summary.skillsToImprove, icon: BookOpen, color: "text-purple-500", bg: "bg-purple-500/10" },
+    { title: "Saved", value: savedCount, icon: Bookmark, color: "text-blue-500", bg: "bg-blue-500/10" },
+    { title: "Applications", value: applicationsCount, icon: Briefcase, color: "text-green-500", bg: "bg-green-500/10" },
+    { title: "Interviews", value: interviewsCount, icon: Calendar, color: "text-violet-500", bg: "bg-violet-500/10" },
+    { title: "Accepted", value: acceptedCount, icon: CheckCircle2, color: "text-emerald-500", bg: "bg-emerald-500/10" },
   ];
 
   const PIPELINE_STAGES = [
-    { label: "Saved", value: applicationProgress.saved, color: "bg-muted-foreground/20" },
-    { label: "Preparing", value: applicationProgress.preparing, color: "bg-blue-500/20" },
-    { label: "Applied", value: applicationProgress.applied, color: "bg-yellow-500/20" },
-    { label: "Interview", value: applicationProgress.interview, color: "bg-orange-500/20" },
-    { label: "Accepted", value: applicationProgress.accepted, color: "bg-green-500/20" },
+    { label: "Saved", value: savedCount, color: "bg-muted-foreground/20" },
+    { label: "Applied", value: applicationsCount, color: "bg-yellow-500/20" },
+    { label: "Interview", value: interviewsCount, color: "bg-orange-500/20" },
+    { label: "Accepted", value: acceptedCount, color: "bg-green-500/20" },
   ];
 
   return (
@@ -241,14 +247,33 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          {/* Recent Activity */}
+          {/* Recent Applications */}
           <Card>
             <CardHeader>
-              <CardTitle>Recent Activity</CardTitle>
+              <CardTitle>Recent Applications</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-5">
-                {recentActivity.map((activity, i) => {
+              {stats?.recentApplications?.length ? (
+                <div className="space-y-4">
+                  {stats.recentApplications.map((application) => (
+                    <Link
+                      key={application.id}
+                      href={`/dashboard/applications/${application.id}`}
+                      className="block rounded-lg border border-border/50 bg-background/50 p-3 transition-colors hover:bg-muted/40"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-semibold">{application.opportunity?.title}</p>
+                          <p className="text-xs text-muted-foreground">{new Date(application.appliedAt).toLocaleDateString()}</p>
+                        </div>
+                        <ApplicationStatusBadge status={application.status} />
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-5">
+                  {recentActivity.map((activity, i) => {
                   let Icon = Activity;
                   let iconColor = "text-muted-foreground";
                   
@@ -273,8 +298,9 @@ export default function DashboardPage() {
                       </div>
                     </div>
                   );
-                })}
-              </div>
+                  })}
+                </div>
+              )}
             </CardContent>
           </Card>
 

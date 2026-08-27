@@ -42,16 +42,42 @@ export const opportunitySchema = z.object({
 });
 
 export const savedOpportunitySchema = z.object({
-  userId: z.string().uuid(),
   opportunityId: z.string().uuid(),
-  status: z.enum([
-    "saved",
-    "preparing",
-    "applied",
-    "interview",
-    "accepted",
-    "rejected"
-  ]),
+});
+
+export const idParamSchema = z.object({
+  id: z.string().uuid("Invalid ID"),
+});
+
+export const opportunityIdParamSchema = z.object({
+  opportunityId: z.string().uuid("Invalid opportunity ID"),
+});
+
+export const paginationQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(50).default(10),
+});
+
+export const applicationStatusSchema = z.enum([
+  "APPLIED",
+  "UNDER_REVIEW",
+  "SHORTLISTED",
+  "INTERVIEW",
+  "ACCEPTED",
+  "REJECTED",
+  "WITHDRAWN",
+]);
+
+export const createApplicationSchema = z.object({
+  opportunityId: z.string().uuid("Invalid opportunity ID"),
+});
+
+export const updateApplicationSchema = z.object({
+  status: applicationStatusSchema,
+});
+
+export const applicationQuerySchema = paginationQuerySchema.extend({
+  status: applicationStatusSchema.optional(),
 });
 
 export const loginSchema = z.object({

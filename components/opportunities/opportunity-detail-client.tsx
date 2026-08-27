@@ -17,9 +17,11 @@ import {
 
 import { OpportunitiesService } from "@/lib/services/opportunities";
 import { SavedService } from "@/lib/services/saved";
+import { ApplicationsService } from "@/lib/services/applications";
 import { ReadinessService } from "@/lib/services/readiness";
 import { MatchedOpportunity, MatchExplanation } from "@/types/match";
 import { ReadinessApiResponse } from "@/types/readiness";
+import { Application } from "@/types/saved";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -49,6 +51,9 @@ export function OpportunityDetailClient({ id }: OpportunityDetailClientProps) {
 
   const [isSaved, setIsSaved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [application, setApplication] = useState<Application | null>(null);
+  const [isRecordingApplication, setIsRecordingApplication] = useState(false);
+  const [applicationMessage, setApplicationMessage] = useState<string | null>(null);
 
   const [readinessResponse, setReadinessResponse] = useState<ReadinessApiResponse | null>(null);
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
@@ -59,12 +64,14 @@ export function OpportunityDetailClient({ id }: OpportunityDetailClientProps) {
     async function loadData() {
       try {
         setIsLoading(true);
-        const [oppData, status] = await Promise.all([
+        const [oppData, savedStatus, applications] = await Promise.all([
           OpportunitiesService.getOpportunityWithMatch(id),
-          SavedService.checkStatus(id)
+          SavedService.isSaved(id),
+          ApplicationsService.getApplications({ limit: 50 }).catch(() => ({ items: [], pagination: { page: 1, limit: 50, total: 0, totalPages: 0 } }))
         ]);
         setData(oppData);
-        setIsSaved(status !== null);
+        setIsSaved(savedStatus);
+        setApplication(applications.items.find((item) => item.opportunityId === id) || null);
       } catch (err) {
         console.error(err);
         setError("Failed to load opportunity details.");
@@ -106,6 +113,27 @@ export function OpportunityDetailClient({ id }: OpportunityDetailClientProps) {
       setIsSaving(false);
     }
   }, [id, isSaved, isSaving]);
+
+  const handleMarkApplied = useCallback(async () => {
+    if (isRecordingApplication) return;
+
+    try {
+      setIsRecordingApplication(true);
+      setApplicationMessage(null);
+      const created = await ApplicationsService.createApplication(id);
+      setApplication(created);
+      setApplicationMessage("Application recorded.");
+    } catch (err) {
+      console.error(err);
+      if (err instanceof Error && err.name === "ALREADY_APPLIED") {
+        setApplicationMessage("You have already applied to this opportunity.");
+      } else {
+        setApplicationMessage("Unable to record application.");
+      }
+    } finally {
+      setIsRecordingApplication(false);
+    }
+  }, [id, isRecordingApplication]);
 
   const handleGeneratePlan = async () => {
     if (!data) return;
@@ -241,7 +269,24 @@ export function OpportunityDetailClient({ id }: OpportunityDetailClientProps) {
               Apply Now
               <ExternalLink className="ml-2 h-4 w-4" />
             </Button>
+            {application ? (
+              <Button variant="secondary" size="lg" className="w-full sm:w-auto" onClick={() => router.push(`/dashboard/applications/${application.id}`)}>
+                View Application
+              </Button>
+            ) : (
+              <Button
+                variant="secondary"
+                size="lg"
+                className="w-full sm:w-auto"
+                onClick={handleMarkApplied}
+                disabled={isRecordingApplication}
+              >
+                {isRecordingApplication && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Mark as Applied
+              </Button>
+            )}
           </div>
+          {applicationMessage && <p className="text-sm text-muted-foreground md:text-right">{applicationMessage}</p>}
         </div>
       </div>
 
@@ -326,6 +371,22 @@ export function OpportunityDetailClient({ id }: OpportunityDetailClientProps) {
               Apply Now
               <ExternalLink className="ml-2 h-4 w-4" />
             </Button>
+            {application ? (
+              <Button variant="outline" className="mt-3 w-full" onClick={() => router.push(`/dashboard/applications/${application.id}`)}>
+                Application Submitted
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                className="mt-3 w-full"
+                onClick={handleMarkApplied}
+                disabled={isRecordingApplication}
+              >
+                {isRecordingApplication && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Mark as Applied
+              </Button>
+            )}
+            {applicationMessage && <p className="mt-3 text-center text-xs text-muted-foreground">{applicationMessage}</p>}
             <p className="text-xs text-center text-muted-foreground mt-3">
               Closes on {formattedDeadline}
             </p>

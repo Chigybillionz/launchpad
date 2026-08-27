@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   Compass,
   Bookmark,
+  Briefcase,
   User,
   Rocket,
   LogOut,
@@ -17,6 +18,7 @@ const SIDEBAR_ITEMS = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Opportunities", href: "/dashboard/opportunities", icon: Compass },
   { label: "Saved", href: "/dashboard/saved", icon: Bookmark },
+  { label: "Applications", href: "/dashboard/applications", icon: Briefcase },
   { label: "Profile", href: "/dashboard/profile", icon: User },
 ];
 

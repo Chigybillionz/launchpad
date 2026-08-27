@@ -1,93 +1,59 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import { PopulatedSavedOpportunity, SavedService } from "@/lib/services/saved";
-import { ApplicationStatus } from "@/types/saved";
-import { OpportunityCard } from "@/components/opportunities/opportunity-card";
-import { ApplicationTracker } from "./application-tracker";
-import { StatusUpdater } from "./status-updater";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { BookmarkIcon } from "lucide-react";
-
-const FILTERS: { label: string; value: string }[] = [
-  { label: "All", value: "all" },
-  { label: "Saved", value: "saved" },
-  { label: "Preparing", value: "preparing" },
-  { label: "Applied", value: "applied" },
-  { label: "Interview", value: "interview" },
-  { label: "Accepted", value: "accepted" },
-  { label: "Rejected", value: "rejected" },
-];
+import { Badge } from "@/components/ui/badge";
+import { BookmarkIcon, Calendar, ExternalLink, Trash2 } from "lucide-react";
+import Link from "next/link";
 
 export function SavedClient() {
-  const router = useRouter();
-  const [activeFilter, setActiveFilter] = useState<string>("all");
   const [data, setData] = useState<PopulatedSavedOpportunity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [removingId, setRemovingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const items = await SavedService.getSavedOpportunities(activeFilter);
-      setData(items);
+      const response = await SavedService.getSavedOpportunities(1, 20);
+      setData(response.items);
     } catch (err) {
       console.error(err);
       setError("Failed to load saved opportunities.");
     } finally {
       setIsLoading(false);
     }
-  }, [activeFilter]);
+  }, []);
 
   useEffect(() => {
-    // We delay slightly to avoid React strict mode / synchronous setState warnings in this setup
     const timeout = setTimeout(() => {
       loadData();
     }, 0);
     return () => clearTimeout(timeout);
   }, [loadData]);
 
-  const handleStatusChange = async (opportunityId: string, newStatus: ApplicationStatus) => {
+  const handleRemove = async (opportunityId: string) => {
     try {
-      await SavedService.updateStatus(opportunityId, newStatus);
-      // Optimistic update
-      setData((prev) => 
-        prev.map(item => 
-          item.opportunity.id === opportunityId 
-            ? { ...item, savedRecord: { ...item.savedRecord, status: newStatus } }
-            : item
-        ).filter(item => activeFilter === "all" || item.savedRecord.status === activeFilter)
-      );
+      setRemovingId(opportunityId);
+      await SavedService.removeSaved(opportunityId);
+      setData((prev) => prev.filter((item) => item.opportunity.id !== opportunityId));
     } catch (err) {
       console.error(err);
+      setError("Unable to remove saved opportunity.");
+    } finally {
+      setRemovingId(null);
     }
   };
 
   return (
     <div className="space-y-6">
-      {/* Filters */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 hide-scrollbar">
-        {FILTERS.map((filter) => (
-          <Button
-            key={filter.value}
-            variant={activeFilter === filter.value ? "default" : "outline"}
-            size="sm"
-            onClick={() => setActiveFilter(filter.value)}
-            className="rounded-full shadow-none"
-          >
-            {filter.label}
-          </Button>
-        ))}
-      </div>
-
-      {/* Content */}
       {isLoading ? (
         <div className="space-y-6">
-          <Skeleton className="h-[280px] w-full rounded-xl" />
-          <Skeleton className="h-[280px] w-full rounded-xl" />
+          <Skeleton className="h-36 w-full rounded-xl" />
+          <Skeleton className="h-36 w-full rounded-xl" />
         </div>
       ) : error ? (
         <div className="py-12 text-center rounded-xl border border-destructive/20 bg-destructive/5 text-destructive">
@@ -105,28 +71,46 @@ export function SavedClient() {
           <p className="text-muted-foreground mb-6">
             Keep track of roles you&apos;re interested in by saving them from the Opportunity Radar.
           </p>
-          <Button onClick={() => router.push("/dashboard/opportunities")}>
+          <Button render={<Link href="/dashboard/opportunities" />}>
             Explore Opportunities
           </Button>
         </div>
       ) : (
         <div className="grid gap-6">
-          {data.map(({ opportunity, savedRecord }) => (
-            <div key={opportunity.id} className="relative rounded-xl border bg-card p-1 shadow-sm">
-              <OpportunityCard opportunity={opportunity} />
-              
-              <div className="p-4 pt-2 md:p-6 md:pt-0 bg-card rounded-b-xl border-t mt-[-1px]">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                  <div className="flex-1 w-full max-w-2xl">
-                    <ApplicationTracker currentStatus={savedRecord.status} />
+          {data.map(({ opportunity, createdAt }) => (
+            <div key={opportunity.id} className="rounded-xl border bg-card p-5 shadow-sm">
+              <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                <div className="space-y-3">
+                  <div>
+                    <h3 className="text-lg font-semibold">{opportunity.title}</h3>
+                    <p className="text-sm font-medium text-muted-foreground">{opportunity.organization}</p>
                   </div>
-                  <div className="flex items-center gap-3 shrink-0">
-                    <span className="text-sm text-muted-foreground font-medium hidden md:inline-block">Update Status:</span>
-                    <StatusUpdater 
-                      currentStatus={savedRecord.status} 
-                      onStatusChange={(newStatus) => handleStatusChange(opportunity.id, newStatus)} 
-                    />
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="secondary" className="capitalize">{opportunity.type}</Badge>
+                    <Badge variant="outline">{opportunity.remote ? "Remote" : opportunity.location}</Badge>
                   </div>
+                  <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <Calendar className="size-4" />
+                      Saved {new Date(createdAt).toLocaleDateString()}
+                    </span>
+                    <span>Deadline {new Date(opportunity.deadline).toLocaleDateString()}</span>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-2 sm:flex-row md:flex-col">
+                  <Button variant="outline" render={<Link href={`/dashboard/opportunities/${opportunity.id}`} />}>
+                    View Opportunity
+                    <ExternalLink className="ml-2 size-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={() => handleRemove(opportunity.id)}
+                    disabled={removingId === opportunity.id}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="mr-2 size-4" />
+                    {removingId === opportunity.id ? "Removing..." : "Remove Saved"}
+                  </Button>
                 </div>
               </div>
             </div>

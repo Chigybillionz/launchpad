@@ -156,12 +156,13 @@ export const APPLICATION_STATUSES: {
   label: string;
   color: string;
 }[] = [
-  { value: "saved", label: "Saved", color: "default" },
-  { value: "preparing", label: "Preparing", color: "secondary" },
-  { value: "applied", label: "Applied", color: "info" },
-  { value: "interview", label: "Interview", color: "warning" },
-  { value: "accepted", label: "Accepted", color: "success" },
-  { value: "rejected", label: "Rejected", color: "destructive" },
+  { value: "APPLIED", label: "Applied", color: "info" },
+  { value: "UNDER_REVIEW", label: "Under Review", color: "secondary" },
+  { value: "SHORTLISTED", label: "Shortlisted", color: "warning" },
+  { value: "INTERVIEW", label: "Interview", color: "warning" },
+  { value: "ACCEPTED", label: "Accepted", color: "success" },
+  { value: "REJECTED", label: "Rejected", color: "destructive" },
+  { value: "WITHDRAWN", label: "Withdrawn", color: "default" },
 ];
 
 // ─── Match Score Tiers ──────────────────────────────────────────────
