@@ -51,14 +51,24 @@ export function MatchExplanationView({ explanation, isLoading }: MatchExplanatio
           </div>
         )}
 
-        {/* Recommendations */}
-        {explanation.recommendations.length > 0 && (
+        {/* Recommendations / Gaps */}
+        {(explanation.recommendations.length > 0 || explanation.gaps.length > 0) && (
           <div className="space-y-3 p-4 rounded-xl border border-primary/20 bg-primary/5">
-            <h4 className="text-xs font-semibold tracking-wider text-primary uppercase flex items-center gap-2">
-              <AlertCircle className="h-4 w-4" />
-              Recommended Next Steps
+            <h4 className="text-xs font-semibold tracking-wider text-primary uppercase flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="h-4 w-4" />
+                Recommended Next Steps
+              </div>
             </h4>
-            <ul className="space-y-2">
+            {explanation.gaps.length > 0 && (
+              <div className="text-sm font-medium text-destructive flex items-center justify-between pb-2 border-b border-primary/10">
+                <span>{explanation.gaps.length} skill gap{explanation.gaps.length === 1 ? '' : 's'} identified</span>
+                <a href="#skill-gap-section" className="text-xs underline hover:text-primary transition-colors">
+                  View Skill Gap Analysis
+                </a>
+              </div>
+            )}
+            <ul className="space-y-2 pt-1">
               {explanation.recommendations.map((rec, i) => (
                 <li key={i} className="text-sm font-medium flex items-start gap-2">
                   <span className="text-primary mt-0.5">•</span>

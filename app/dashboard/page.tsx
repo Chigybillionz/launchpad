@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Progress } from "@/components/ui/progress";
+import { SkillsToStrengthen } from "@/components/dashboard/skills-to-strengthen";
 import { 
   Target, 
   Flame, 
@@ -214,32 +214,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          {/* Skill Readiness */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle>Skill Readiness</CardTitle>
-              <CardDescription>Areas to focus on for your targeted roles.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-5">
-                {skillReadiness.map((item, i) => (
-                  <div key={i} className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="font-medium">{item.skill}</span>
-                      <span className="text-muted-foreground tabular-nums">{item.percentage}%</span>
-                    </div>
-                    <Progress value={item.percentage} />
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button variant="outline" className="w-full">
-                <BookOpen className="mr-2 size-4" />
-                View Readiness Plan
-              </Button>
-            </CardFooter>
-          </Card>
+          <SkillsToStrengthen />
         </div>
 
         {/* Right Column: Progress & Activity */}

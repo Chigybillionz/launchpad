@@ -240,7 +240,7 @@ export function OpportunityDetailClient({ id }: OpportunityDetailClientProps) {
             <section className="space-y-4">
               <h2 className="text-lg font-semibold border-b pb-2">Skill Requirements</h2>
               <SkillGapAnalysis 
-                match={match} 
+                opportunityId={id} 
                 onGeneratePlan={handleGeneratePlan}
                 isGenerating={isGeneratingPlan}
                 hasGenerated={!!readinessPlan}

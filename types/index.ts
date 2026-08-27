@@ -5,3 +5,4 @@ export * from "./ai";
 export * from "./saved";
 export * from "./onboarding";
 export * from "./dashboard";
+export * from "./skill-gap";
