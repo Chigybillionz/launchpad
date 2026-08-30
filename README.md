@@ -1,36 +1,68 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Launchpad
 
-## Getting Started
+AI-powered opportunity discovery and career-readiness platform. Launchpad helps students and early-career professionals find their next big opportunity—whether it's an internship, hackathon, fellowship, or full-time job.
 
-First, run the development server:
+## Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Personalized opportunity matching**: Get matched based on your skills, interests, and goals.
+- **Opportunity Radar**: Discover opportunities that align with your profile.
+- **Match explanations**: Understand why you are a good fit for specific roles.
+- **Skill-gap analysis**: See exactly what you're missing for a given opportunity.
+- **AI readiness plans**: Generate a custom, day-by-day plan to prepare for applications.
+- **Saved opportunities**: Save roles to apply to later.
+- **Application tracking**: Keep track of where you've applied and update your status (Applied, Under Review, Interview, Accepted).
+- **Admin dashboard**: Comprehensive analytics, user management, and opportunity management for administrators.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Tech Stack
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Next.js** (App Router)
+- **TypeScript**
+- **Tailwind CSS**
+- **PostgreSQL**
+- **Prisma**
+- **Zod**
+- **AI Provider** (OpenAI)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Setup Instructions
 
-## Learn More
+1. **Clone the project:**
+   ```bash
+   git clone <repository-url>
+   cd launchpad
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. **Configure environment variables:**
+   Copy `.env.example` to `.env` and fill in your details:
+   ```bash
+   cp .env.example .env
+   ```
+   Ensure you provide `DATABASE_URL` and `OPENAI_API_KEY`.
+   For local admin testing, you can also set `SEED_ADMIN_EMAIL` and `SEED_ADMIN_PASSWORD`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+4. **Configure database:**
+   Ensure PostgreSQL is running and your `DATABASE_URL` is correct.
 
-## Deploy on Vercel
+5. **Run Prisma:**
+   ```bash
+   npx prisma generate
+   npx prisma db push
+   ```
+   *(Note: For production, use `prisma migrate deploy` instead of `db push`)*
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+6. **Seed demo data:**
+   ```bash
+   npx prisma db seed
+   ```
+   This will populate the database with a variety of opportunities and a local admin user (if configured).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+7. **Start the development server:**
+   ```bash
+   npm run dev
+   ```
+
+Open [http://localhost:3000](http://localhost:3000) to see the application!

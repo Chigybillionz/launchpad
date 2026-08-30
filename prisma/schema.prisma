@@ -26,6 +26,8 @@ model User {
   savedOpportunities SavedOpportunity[]
   applications       Application[]
   sessions           Session[]
+
+  @@index([email])
 }
 
 model Opportunity {
@@ -48,6 +50,10 @@ model Opportunity {
   savedBy        SavedOpportunity[]
   applications   Application[]
   readinessPlans ReadinessPlan[]
+
+  @@index([type])
+  @@index([deadline])
+  @@index([createdAt])
 }
 
 model SavedOpportunity {

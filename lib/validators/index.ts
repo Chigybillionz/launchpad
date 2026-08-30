@@ -37,7 +37,9 @@ export const opportunitySchema = z.object({
   requiredSkills: z.array(z.string()),
   experienceLevel: z.string(),
   eligibility: z.string(),
-  applicationUrl: z.string().url(),
+  applicationUrl: z.string().url().refine((val) => val.startsWith("http://") || val.startsWith("https://"), {
+    message: "URL must start with http:// or https://",
+  }),
   tags: z.array(z.string()),
 });
 

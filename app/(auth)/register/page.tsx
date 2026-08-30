@@ -83,7 +83,7 @@ export default function RegisterPage() {
           <Input
             id="reg-name"
             type="text"
-            placeholder="Alex Johnson"
+            placeholder="Chigozie Chiggy"
             value={name}
             onChange={(e) => setName(e.target.value)}
             autoComplete="name"

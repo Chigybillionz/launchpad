@@ -11,7 +11,8 @@ export const ProfileService = {
       throw new Error("Profile not found");
     }
 
-    const { passwordHash: _passwordHash, ...profile } = user;
+    const { passwordHash, ...profile } = user;
+    void passwordHash; // Explicitly ignore
     return profile;
   },
 
@@ -21,7 +22,8 @@ export const ProfileService = {
       data,
     });
 
-    const { passwordHash: _passwordHash, ...profile } = updatedUser;
+    const { passwordHash, ...profile } = updatedUser;
+    void passwordHash; // Explicitly ignore
     return profile;
   },
 

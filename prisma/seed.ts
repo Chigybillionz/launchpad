@@ -1,8 +1,39 @@
 import { PrismaClient } from '@prisma/client'
+import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
 async function main() {
+  // Check if we need to seed an admin user
+  const adminEmail = process.env.SEED_ADMIN_EMAIL
+  const adminPassword = process.env.SEED_ADMIN_PASSWORD
+
+  if (adminEmail && adminPassword) {
+    const existingAdmin = await prisma.user.findUnique({
+      where: { email: adminEmail }
+    })
+
+    if (!existingAdmin) {
+      const passwordHash = await bcrypt.hash(adminPassword, 10)
+      await prisma.user.create({
+        data: {
+          name: "System Admin",
+          email: adminEmail,
+          passwordHash,
+          role: "ADMIN",
+          experienceLevel: "ADVANCED",
+          location: "Remote",
+          skills: [],
+          interests: [],
+          goals: [],
+          profileCompleted: true
+        }
+      })
+      console.log(`Seeded admin user: ${adminEmail}`)
+    } else {
+      console.log(`Admin user ${adminEmail} already exists.`)
+    }
+  }
   // Check if we already have opportunities to prevent duplicate seeding
   const count = await prisma.opportunity.count()
   if (count > 0) {

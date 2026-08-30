@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
-import { UnauthorizedError } from "@/lib/utils/errors";
+import { UnauthorizedError, ForbiddenError } from "@/lib/utils/errors";
 
 const SESSION_COOKIE_NAME = "launchpad_session";
 const SESSION_EXPIRATION_DAYS = 30;
@@ -81,6 +81,14 @@ export async function requireAuth() {
   }
 
   return session.user;
+}
+
+export async function requireAdmin() {
+  const user = await requireAuth();
+  if (user.role !== "ADMIN") {
+    throw new ForbiddenError("Admin authorization required.");
+  }
+  return user;
 }
 
 export async function getCurrentUser() {

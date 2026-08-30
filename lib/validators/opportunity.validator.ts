@@ -28,7 +28,9 @@ export const createOpportunitySchema = z.object({
   requiredSkills: stringArrayDedupe.optional().default([]),
   experienceLevel: z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED"]).optional().default("BEGINNER"),
   eligibility: z.string().trim().optional().default(""),
-  applicationUrl: z.string().trim().url("Valid URL required"),
+  applicationUrl: z.string().trim().url("Valid URL required").refine((val) => val.startsWith("http://") || val.startsWith("https://"), {
+    message: "URL must start with http:// or https://",
+  }),
   tags: stringArrayDedupe.optional().default([]),
 });
 

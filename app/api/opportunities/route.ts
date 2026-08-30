@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { OpportunityService } from "@/lib/services/opportunity.service";
-import { opportunityQuerySchema } from "@/lib/validators";
-import { requireAuth } from "@/lib/services/auth";
+import { opportunityQuerySchema, createOpportunitySchema } from "@/lib/validators";
+import { requireAdmin } from "@/lib/services/auth";
 
 export async function GET(request: Request) {
   try {
@@ -39,17 +39,10 @@ export async function GET(request: Request) {
   }
 }
 
-export async function POST(_request: Request) {
+export async function POST(request: Request) {
   try {
-    await requireAuth();
+    await requireAdmin();
 
-    // Placeholder Admin check (Return 403 Forbidden for MVP)
-    return NextResponse.json(
-      { success: false, error: { code: "FORBIDDEN", message: "Admin authorization required to create opportunities." } },
-      { status: 403 }
-    );
-
-    /* Future Implementation
     const body = await request.json();
     const parsed = createOpportunitySchema.safeParse(body);
     if (!parsed.success) {
@@ -61,7 +54,6 @@ export async function POST(_request: Request) {
 
     const opportunity = await OpportunityService.createOpportunity(parsed.data);
     return NextResponse.json({ success: true, data: { opportunity } }, { status: 201 });
-    */
   } catch (error) {
     if (error instanceof Error && error.message === "Unauthorized") {
       return NextResponse.json({ success: false, error: { code: "UNAUTHORIZED", message: "Not authenticated" } }, { status: 401 });
