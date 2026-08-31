@@ -27,7 +27,8 @@ export const AIService = {
     // --- Validate API key ---
     const apiKey = process.env.OPENAI_API_KEY || process.env.AI_API_KEY;
     if (!apiKey) {
-      throw new Error("AI_UNAVAILABLE");
+      console.warn("[AI_SERVICE] No API key configured, falling back to mock.");
+      return this.getMockReadinessPlan(input);
     }
 
     const client = new OpenAI({ apiKey });
