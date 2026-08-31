@@ -29,6 +29,15 @@ import { MatchAnalysisCard } from "./match-analysis-card";
 import { SkillGapAnalysis } from "./skill-gap-analysis";
 import { ReadinessPlanView } from "./readiness-plan-view";
 import { MatchExplanationView } from "./match-explanation-view";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useAuth } from "@/lib/auth-context";
 
 interface OpportunityDetailClientProps {
   id: string;
@@ -42,9 +51,11 @@ const LOADING_PHASES = [
 
 export function OpportunityDetailClient({ id }: OpportunityDetailClientProps) {
   const router = useRouter();
+  const { user } = useAuth();
   const [data, setData] = useState<MatchedOpportunity | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showGuestPrompt, setShowGuestPrompt] = useState(false);
   
   const [explanation, setExplanation] = useState<MatchExplanation | null>(null);
   const [isExplaining, setIsExplaining] = useState(true);
@@ -64,14 +75,32 @@ export function OpportunityDetailClient({ id }: OpportunityDetailClientProps) {
     async function loadData() {
       try {
         setIsLoading(true);
-        const [oppData, savedStatus, applications] = await Promise.all([
-          OpportunitiesService.getOpportunityWithMatch(id),
-          SavedService.isSaved(id),
-          ApplicationsService.getApplications({ limit: 50 }).catch(() => ({ items: [], pagination: { page: 1, limit: 50, total: 0, totalPages: 0 } }))
-        ]);
-        setData(oppData);
-        setIsSaved(savedStatus);
-        setApplication(applications.items.find((item) => item.opportunityId === id) || null);
+
+        if (user) {
+          const [oppData, savedStatus, applications] = await Promise.all([
+            OpportunitiesService.getOpportunityWithMatch(id),
+            SavedService.isSaved(id),
+            ApplicationsService.getApplications({ limit: 50 }).catch(() => ({ items: [], pagination: { page: 1, limit: 50, total: 0, totalPages: 0 } }))
+          ]);
+          setData(oppData);
+          setIsSaved(savedStatus);
+          setApplication(applications.items.find((item) => item.opportunityId === id) || null);
+        } else {
+          const guestProfileData = localStorage.getItem("launchpad_guest_profile");
+          if (!guestProfileData) throw new Error("No guest profile found.");
+          const guestProfile = JSON.parse(guestProfileData);
+
+          const res = await fetch(`/api/discover/${id}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(guestProfile),
+          });
+          if (!res.ok) throw new Error("Failed to load opportunity details");
+          const json = await res.json();
+          setData(json.data);
+          setIsSaved(false);
+          setApplication(null);
+        }
       } catch (err) {
         console.error(err);
         setError("Failed to load opportunity details.");
@@ -83,8 +112,23 @@ export function OpportunityDetailClient({ id }: OpportunityDetailClientProps) {
     async function loadExplanation() {
       try {
         setIsExplaining(true);
-        const explData = await OpportunitiesService.getOpportunityExplanation(id);
-        setExplanation(explData.explanation);
+        if (user) {
+          const explData = await OpportunitiesService.getOpportunityExplanation(id);
+          setExplanation(explData.explanation);
+        } else {
+          const guestProfileData = localStorage.getItem("launchpad_guest_profile");
+          if (!guestProfileData) return;
+          const guestProfile = JSON.parse(guestProfileData);
+
+          const res = await fetch(`/api/discover/${id}/explanation`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(guestProfile),
+          });
+          if (!res.ok) throw new Error("Failed to load explanation");
+          const json = await res.json();
+          setExplanation(json.data.explanation);
+        }
       } catch (err) {
         console.error("Failed to load explanation:", err);
       } finally {
@@ -94,9 +138,13 @@ export function OpportunityDetailClient({ id }: OpportunityDetailClientProps) {
 
     loadData();
     loadExplanation();
-  }, [id]);
+  }, [id, user]);
 
   const toggleSave = useCallback(async () => {
+    if (!user) {
+      setShowGuestPrompt(true);
+      return;
+    }
     if (isSaving) return;
     try {
       setIsSaving(true);
@@ -112,9 +160,13 @@ export function OpportunityDetailClient({ id }: OpportunityDetailClientProps) {
     } finally {
       setIsSaving(false);
     }
-  }, [id, isSaved, isSaving]);
+  }, [id, isSaved, isSaving, user]);
 
   const handleMarkApplied = useCallback(async () => {
+    if (!user) {
+      setShowGuestPrompt(true);
+      return;
+    }
     if (isRecordingApplication) return;
 
     try {
@@ -133,9 +185,13 @@ export function OpportunityDetailClient({ id }: OpportunityDetailClientProps) {
     } finally {
       setIsRecordingApplication(false);
     }
-  }, [id, isRecordingApplication]);
+  }, [id, isRecordingApplication, user]);
 
   const handleGeneratePlan = async () => {
+    if (!user) {
+      setShowGuestPrompt(true);
+      return;
+    }
     if (!data) return;
     setIsGeneratingPlan(true);
     setPlanError(null);
@@ -202,6 +258,21 @@ export function OpportunityDetailClient({ id }: OpportunityDetailClientProps) {
 
   return (
     <div className="space-y-6">
+      <Dialog open={showGuestPrompt} onOpenChange={setShowGuestPrompt}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create a free account</DialogTitle>
+            <DialogDescription>
+              Create an account to save opportunities, track your applications, and unlock personalized AI readiness plans.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => router.push("/login")}>Log In</Button>
+            <Button onClick={() => router.push("/register")}>Create Account</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Button 
         variant="ghost" 
         size="sm" 

@@ -59,27 +59,26 @@ export function Hero() {
             variants={fadeUp}
             className="mt-6 max-w-lg text-base leading-relaxed text-muted-foreground sm:text-lg"
           >
-            Launchpad matches your skills with opportunities and shows you
-            exactly what you need to become ready.
+            Discover opportunities built for you.
+            Tell Launchpad what you can do, what you&apos;re interested in, and what you&apos;re looking for.
           </motion.p>
 
           {/* CTAs */}
           <motion.div
             custom={3}
             variants={fadeUp}
-            className="mt-10 flex flex-col gap-3 sm:flex-row"
+            className="mt-10 flex flex-col items-center gap-4"
           >
             <Button size="lg" render={<Link href="/onboarding" />}>
               Find My Opportunities
               <ArrowRight className="ml-1.5 size-4" />
             </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              render={<Link href="/dashboard/opportunities" />}
-            >
-              Explore Opportunities
-            </Button>
+            <p className="text-sm text-muted-foreground">
+              Already have an account?{" "}
+              <Link href="/login" className="font-medium text-primary hover:underline">
+                Log in
+              </Link>
+            </p>
           </motion.div>
         </motion.div>
       </Container>

@@ -62,8 +62,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       throw new Error(json.error?.message || "Login failed");
     }
 
-    setUser(json.data.user);
-    return json.data.user;
+    const user = json.data.user;
+
+    if (!user.profileCompleted) {
+      const guestProfile = localStorage.getItem("launchpad_guest_profile");
+      if (guestProfile) {
+        try {
+          const claimRes = await fetch("/api/profile/claim", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: guestProfile,
+          });
+          if (claimRes.ok) {
+            const claimJson = await claimRes.json();
+            if (claimJson.data.claimed) {
+              user.profileCompleted = true;
+              localStorage.removeItem("launchpad_guest_profile");
+            }
+          }
+        } catch (err) {
+          console.error("Failed to claim guest profile:", err);
+        }
+      }
+    }
+
+    setUser(user);
+    return user;
   }, []);
 
   const register = useCallback(
@@ -79,8 +103,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error(json.error?.message || "Registration failed");
       }
 
-      setUser(json.data.user);
-      return json.data.user;
+      const user = json.data.user;
+
+      if (!user.profileCompleted) {
+        const guestProfile = localStorage.getItem("launchpad_guest_profile");
+        if (guestProfile) {
+          try {
+            const claimRes = await fetch("/api/profile/claim", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: guestProfile,
+            });
+            if (claimRes.ok) {
+              const claimJson = await claimRes.json();
+              if (claimJson.data.claimed) {
+                user.profileCompleted = true;
+                localStorage.removeItem("launchpad_guest_profile");
+              }
+            }
+          } catch (err) {
+            console.error("Failed to claim guest profile:", err);
+          }
+        }
+      }
+
+      setUser(user);
+      return user;
     },
     []
   );

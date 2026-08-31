@@ -9,7 +9,6 @@ import {
   Bookmark,
   Briefcase,
   User,
-  Rocket,
   LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";

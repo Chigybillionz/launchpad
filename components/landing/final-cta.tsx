@@ -25,8 +25,8 @@ export function FinalCta() {
             matched to your skills.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Button size="lg" render={<Link href="/onboarding" />}>
-              Get Started — It&apos;s Free
+            <Button size="lg" className="h-12 px-8 text-base shadow-lg" render={<Link href="/onboarding" />}>
+              Find My Opportunities — It&apos;s Free
               <ArrowRight className="ml-1.5 size-4" />
             </Button>
           </div>

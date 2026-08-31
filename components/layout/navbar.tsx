@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Rocket, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -57,7 +57,7 @@ export function Navbar() {
         <div className="flex items-center gap-2">
           {!isDashboard && (
             <Button size="sm" render={<Link href="/onboarding" />}>
-              Get Started
+              Find My Opportunities
             </Button>
           )}
 

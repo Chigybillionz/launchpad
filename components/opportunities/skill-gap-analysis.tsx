@@ -5,6 +5,7 @@ import { SkillGapAnalysis as SkillGapAnalysisType, SkillPriority } from "@/types
 import { useEffect, useState } from "react";
 import { SkillGapService } from "@/lib/services/skill-gaps";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/lib/auth-context";
 
 interface SkillGapAnalysisProps {
   opportunityId: string;
@@ -14,14 +15,30 @@ interface SkillGapAnalysisProps {
 }
 
 export function SkillGapAnalysis({ opportunityId, onGeneratePlan, isGenerating, hasGenerated }: SkillGapAnalysisProps) {
+  const { user } = useAuth();
   const [analysis, setAnalysis] = useState<SkillGapAnalysisType | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
       try {
-        const data = await SkillGapService.getOpportunitySkillGap(opportunityId);
-        setAnalysis(data);
+        if (user) {
+          const data = await SkillGapService.getOpportunitySkillGap(opportunityId);
+          setAnalysis(data);
+        } else {
+          const guestProfileData = localStorage.getItem("launchpad_guest_profile");
+          if (!guestProfileData) return;
+          const guestProfile = JSON.parse(guestProfileData);
+
+          const res = await fetch(`/api/discover/${opportunityId}/skill-gaps`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(guestProfile),
+          });
+          if (!res.ok) throw new Error("Failed to load skill gaps");
+          const json = await res.json();
+          setAnalysis(json.data.analysis);
+        }
       } catch (error) {
         console.error("Failed to load skill gap analysis", error);
       } finally {
@@ -29,7 +46,7 @@ export function SkillGapAnalysis({ opportunityId, onGeneratePlan, isGenerating, 
       }
     }
     load();
-  }, [opportunityId]);
+  }, [opportunityId, user]);
 
   if (loading) {
     return (

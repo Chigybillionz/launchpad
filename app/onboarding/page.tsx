@@ -23,7 +23,7 @@ import { StepSummary } from "@/components/onboarding/step-summary";
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { completeOnboarding } = useAuth();
+  const { completeOnboarding, user } = useAuth();
 
   const [currentStep, setCurrentStep] = useState(1);
   const [data, setData] = useState<OnboardingData>(INITIAL_ONBOARDING_DATA);
@@ -93,15 +93,20 @@ export default function OnboardingPage() {
 
     setIsSubmitting(true);
     try {
-
-      
       const submitData = {
         ...data,
         experienceLevel: data.experienceLevel === "" ? undefined : data.experienceLevel
       };
       
-      await completeOnboarding(submitData);
-      router.push("/dashboard");
+      // If user is authenticated, save to database
+      if (user) {
+        await completeOnboarding(submitData);
+        router.push("/dashboard");
+      } else {
+        // If guest, save to localStorage and proceed to discovery
+        localStorage.setItem("launchpad_guest_profile", JSON.stringify(submitData));
+        router.push("/discover");
+      }
     } catch (error) {
       console.error("Failed to complete onboarding:", error);
     } finally {

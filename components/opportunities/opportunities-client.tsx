@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Search, Loader2 } from "lucide-react";
 import { OpportunitiesService } from "@/lib/services/opportunities";
+import { useAuth } from "@/lib/auth-context";
 import { Opportunity } from "@/types/opportunity";
 import { MatchedOpportunity } from "@/types/match";
 import { OpportunityCard } from "./opportunity-card";
@@ -32,6 +33,7 @@ const CATEGORIES = [
 const EXPERIENCE_LEVELS = ["All", "Beginner", "Intermediate", "Advanced"];
 
 export function OpportunitiesClient() {
+  const { user } = useAuth();
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -71,15 +73,53 @@ export function OpportunitiesClient() {
                         undefined;
 
 
-      const response = await OpportunitiesService.getOpportunities({
-        search,
-        type: finalType,
-        remote: remote === "all" ? undefined : remote,
-        location: location === "all" ? undefined : location,
-        experienceLevel: experienceLevel === "all" ? undefined : experienceLevel,
-        page: currentPage,
-        limit: 6,
-      });
+      let response;
+      if (user) {
+        response = await OpportunitiesService.getOpportunities({
+          search,
+          type: finalType,
+          remote: remote === "all" ? undefined : remote,
+          location: location === "all" ? undefined : location,
+          experienceLevel: experienceLevel === "all" ? undefined : experienceLevel,
+          page: currentPage,
+          limit: 6,
+        });
+      } else {
+        const guestProfileData = localStorage.getItem("launchpad_guest_profile");
+        if (!guestProfileData) {
+          throw new Error("No guest profile found.");
+        }
+        const guestProfile = JSON.parse(guestProfileData);
+
+        const searchParams = new URLSearchParams();
+        if (search) searchParams.set("search", search);
+        if (finalType) searchParams.set("type", finalType);
+        if (remote !== "all") searchParams.set("remote", remote);
+        if (location !== "all") searchParams.set("location", location);
+        if (experienceLevel !== "all") searchParams.set("experienceLevel", experienceLevel);
+        searchParams.set("page", currentPage.toString());
+        searchParams.set("limit", "6");
+
+        const res = await fetch(`/api/discover?${searchParams.toString()}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(guestProfile),
+        });
+
+        if (!res.ok) {
+          const errData = await res.json();
+          throw new Error(errData.error?.message || "Failed to fetch discoveries");
+        }
+
+        const json = await res.json();
+        response = {
+          data: json.data.matches,
+          total: json.data.pagination.total,
+          page: json.data.pagination.page,
+          limit: json.data.pagination.limit,
+          hasMore: json.data.pagination.page < json.data.pagination.totalPages,
+        };
+      }
 
       if (isLoadMore) {
         const mapped = response.data.map((m: MatchedOpportunity) => ({ ...m.opportunity, matchScore: m.match.score }));
@@ -97,7 +137,7 @@ export function OpportunitiesClient() {
       setIsLoading(false);
       setIsLoadingMore(false);
     }
-  }, [search, type, remote, location, experienceLevel, page]);
+  }, [search, type, remote, location, experienceLevel, page, user]);
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {

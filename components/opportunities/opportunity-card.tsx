@@ -11,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { usePathname } from "next/navigation";
 import { MatchScore } from "./match-score";
 
 interface OpportunityCardProps {
@@ -35,6 +36,9 @@ export function OpportunityCard({ opportunity }: OpportunityCardProps) {
     month: "short",
     year: "numeric",
   });
+
+  const pathname = usePathname();
+  const basePath = pathname.startsWith("/discover") ? "/discover/opportunities" : "/dashboard/opportunities";
 
   return (
     <Card className="flex h-full flex-col hover:border-primary/50 transition-colors duration-300">
@@ -88,7 +92,7 @@ export function OpportunityCard({ opportunity }: OpportunityCardProps) {
 
       <CardFooter className="pt-4 pb-4 flex gap-2">
         <Button 
-          render={<Link href={`/dashboard/opportunities/${opportunity.id}`} />} 
+          render={<Link href={`${basePath}/${opportunity.id}`} />} 
           className="flex-1 shadow-xs hover:shadow-md transition-all duration-300" 
           variant="default"
         >
