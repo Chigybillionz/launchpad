@@ -93,8 +93,7 @@ export default function OnboardingPage() {
 
     setIsSubmitting(true);
     try {
-      // Mock API call delay
-      await new Promise((resolve) => setTimeout(resolve, 800));
+
       
       const submitData = {
         ...data,

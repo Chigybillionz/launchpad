@@ -60,30 +60,34 @@ export const OpportunitiesService = {
     return json.data;
   },
 
-  // Mock save functionality
   async saveOpportunity(id: string): Promise<void> {
-    if (typeof window !== "undefined") {
-      const saved = JSON.parse(localStorage.getItem("saved_opportunities") || "[]");
-      if (!saved.includes(id)) {
-        saved.push(id);
-        localStorage.setItem("saved_opportunities", JSON.stringify(saved));
-      }
+    const res = await fetch("/api/saved-opportunities", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ opportunityId: id }),
+    });
+
+    if (!res.ok) {
+      const json = await res.json();
+      throw new Error(json.error?.message || "Failed to save opportunity");
     }
   },
 
   async unsaveOpportunity(id: string): Promise<void> {
-    if (typeof window !== "undefined") {
-      let saved = JSON.parse(localStorage.getItem("saved_opportunities") || "[]");
-      saved = saved.filter((savedId: string) => savedId !== id);
-      localStorage.setItem("saved_opportunities", JSON.stringify(saved));
+    const res = await fetch(`/api/saved-opportunities/${id}`, {
+      method: "DELETE",
+    });
+
+    if (!res.ok) {
+      const json = await res.json();
+      throw new Error(json.error?.message || "Failed to unsave opportunity");
     }
   },
 
   async isOpportunitySaved(id: string): Promise<boolean> {
-    if (typeof window !== "undefined") {
-      const saved = JSON.parse(localStorage.getItem("saved_opportunities") || "[]");
-      return saved.includes(id);
-    }
-    return false;
+    const res = await fetch(`/api/saved-opportunities/${id}`);
+    if (!res.ok) return false;
+    const json = await res.json();
+    return json.data?.saved || false;
   }
 };

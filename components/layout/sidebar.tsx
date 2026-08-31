@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -32,7 +33,7 @@ export function Sidebar() {
     <aside className="hidden w-56 shrink-0 border-r border-border/60 bg-sidebar md:flex md:flex-col">
       {/* Logo */}
       <div className="flex h-14 items-center gap-2 px-5">
-        <Rocket className="size-5 text-primary" />
+        <Image src="/images/logo.jpg" alt="Launchpad Logo" width={24} height={24} className="rounded-full" />
         <span className="text-sm font-semibold tracking-tight text-sidebar-foreground">
           Launchpad
         </span>

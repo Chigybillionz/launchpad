@@ -301,8 +301,6 @@ export function OpportunityDetailClient({ id }: OpportunityDetailClientProps) {
               <h2 className="text-lg font-semibold border-b pb-2">About the Opportunity</h2>
               <div className="text-muted-foreground leading-relaxed">
                 {opportunity.description}
-                <br /><br />
-                This is a placeholder for a much longer description about the opportunity, the team, the expectations, and the impact you will make. It provides context and details about what the day-to-day responsibilities look like.
               </div>
             </section>
 

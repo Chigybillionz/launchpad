@@ -6,7 +6,7 @@ export const userSchema = z.object({
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email address"),
   role: z.string(),
-  experienceLevel: z.enum(["beginner", "intermediate", "advanced"]),
+  experienceLevel: z.string().transform(s => s.toUpperCase()).pipe(z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED"])),
   location: z.string(),
   skills: z.array(z.string()),
   interests: z.array(z.string()),

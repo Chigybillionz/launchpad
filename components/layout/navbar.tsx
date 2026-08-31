@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Rocket, Menu, X } from "lucide-react";
 import { useState } from "react";
@@ -22,7 +23,7 @@ export function Navbar() {
           href="/"
           className="flex items-center gap-2 font-semibold tracking-tight text-foreground"
         >
-          <Rocket className="size-5 text-primary" />
+          <Image src="/images/logo.jpg" alt="Launchpad Logo" width={24} height={24} className="rounded-full" />
           <span className="text-base">Launchpad</span>
         </Link>
 

@@ -264,7 +264,7 @@ export default function ProfilePage() {
             <CardContent>
               {isEditing ? (
                 <Select
-                  value={formData.experienceLevel}
+                  value={formData.experienceLevel?.toLowerCase()}
                   onValueChange={(val) => { if (val) updateField("experienceLevel", val as ExperienceLevel) }}
                 >
                   <SelectTrigger>

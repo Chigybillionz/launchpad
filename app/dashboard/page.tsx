@@ -15,12 +15,10 @@ import { SkillsToStrengthen } from "@/components/dashboard/skills-to-strengthen"
 import { ApplicationStatusBadge } from "@/components/applications/application-status-badge";
 import { 
   Briefcase, 
-  BookOpen,
   ArrowRight,
   ExternalLink,
   Calendar,
   MapPin,
-  Clock,
   Activity,
   Bookmark,
   CheckCircle2
@@ -39,7 +37,7 @@ export default function DashboardPage() {
       try {
         setIsLoading(true);
         const [dashboardData, matchesData, dashboardStats] = await Promise.all([
-          DashboardService.getDashboardData(authUser.id),
+          DashboardService.getDashboardData(),
           OpportunitiesService.getOpportunities({ limit: 5 }).catch(() => null),
           ApplicationsService.getDashboardStats().catch(() => null)
         ]);
@@ -55,7 +53,7 @@ export default function DashboardPage() {
         setData(dashboardData);
         setStats(dashboardStats);
       } catch (err) {
-        // Fallback handled, but we ignore errors in mock layer for now
+        // Ignore errors in API calls to allow partial dashboard loads
         console.error(err);
       } finally {
         setIsLoading(false);
@@ -104,7 +102,7 @@ export default function DashboardPage() {
     );
   }
 
-  const { summary, topOpportunities, applicationProgress, recentActivity } = data;
+  const { summary, topOpportunities, applicationProgress } = data;
   const savedCount = stats?.saved ?? applicationProgress.saved;
   const applicationsCount = stats?.applications ?? summary.applications;
   const interviewsCount = stats?.interviews ?? applicationProgress.interview;
@@ -272,33 +270,9 @@ export default function DashboardPage() {
                   ))}
                 </div>
               ) : (
-                <div className="space-y-5">
-                  {recentActivity.map((activity, i) => {
-                  let Icon = Activity;
-                  let iconColor = "text-muted-foreground";
-                  
-                  if (activity.type === "saved") { Icon = Bookmark; iconColor = "text-blue-500"; }
-                  if (activity.type === "applied") { Icon = CheckCircle2; iconColor = "text-green-500"; }
-                  if (activity.type === "plan_generated") { Icon = BookOpen; iconColor = "text-purple-500"; }
-                  
-                  return (
-                    <div key={activity.id} className="relative flex gap-4">
-                      {i !== recentActivity.length - 1 && (
-                        <div className="absolute left-[11px] top-7 bottom-[-20px] w-px bg-border" />
-                      )}
-                      <div className={`relative z-10 mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-background border ${iconColor}`}>
-                        <Icon className="size-3.5" />
-                      </div>
-                      <div className="flex flex-col gap-1 pb-1 text-sm">
-                        <span className="font-medium">{activity.description}</span>
-                        <span className="flex items-center text-xs text-muted-foreground">
-                          <Clock className="mr-1 size-3" />
-                          {new Date(activity.timestamp).toLocaleDateString()}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                  })}
+                <div className="flex flex-col items-center justify-center py-6 text-center text-muted-foreground border rounded-lg border-dashed bg-muted/20">
+                  <Activity className="h-8 w-8 mb-2 opacity-20" />
+                  <p className="text-sm">No recent application activity</p>
                 </div>
               )}
             </CardContent>
