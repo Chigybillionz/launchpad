@@ -1,4 +1,4 @@
-import { requireAdmin } from "@/lib/services/auth";
+import { requireAdminPage } from "@/lib/services/auth";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,11 +18,7 @@ async function getUsers() {
 }
 
 export default async function AdminUsersPage() {
-  try {
-    await requireAdmin();
-  } catch {
-    redirect("/");
-  }
+  await requireAdminPage();
 
   const data = await getUsers();
 

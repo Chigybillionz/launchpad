@@ -40,7 +40,10 @@ export async function PUT(_request: Request, { params: _params }: { params: Prom
     const updated = await OpportunityService.updateOpportunity((await _params).id, parsed.data);
     return NextResponse.json({ success: true, data: { opportunity: updated } });
   } catch (error) {
-    if (error instanceof Error && error.message === "Unauthorized") {
+    if (error instanceof Error && error.message.includes("Admin authorization required")) {
+      return NextResponse.json({ success: false, error: { code: "FORBIDDEN", message: "Forbidden" } }, { status: 403 });
+    }
+    if (error instanceof Error && error.message.includes("Authentication required")) {
       return NextResponse.json({ success: false, error: { code: "UNAUTHORIZED", message: "Not authenticated" } }, { status: 401 });
     }
     console.error("PUT /api/opportunities/[id] error:", error);
@@ -55,7 +58,10 @@ export async function DELETE(_request: Request, { params: _params }: { params: P
     await OpportunityService.deleteOpportunity((await _params).id);
     return NextResponse.json({ success: true, data: { deleted: true } });
   } catch (error) {
-    if (error instanceof Error && error.message === "Unauthorized") {
+    if (error instanceof Error && error.message.includes("Admin authorization required")) {
+      return NextResponse.json({ success: false, error: { code: "FORBIDDEN", message: "Forbidden" } }, { status: 403 });
+    }
+    if (error instanceof Error && error.message.includes("Authentication required")) {
       return NextResponse.json({ success: false, error: { code: "UNAUTHORIZED", message: "Not authenticated" } }, { status: 401 });
     }
     console.error("DELETE /api/opportunities/[id] error:", error);

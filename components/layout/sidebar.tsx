@@ -26,7 +26,7 @@ import { useAuth } from "@/lib/auth-context";
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
 
   return (
     <aside className="hidden w-56 shrink-0 border-r border-border/60 bg-sidebar md:flex md:flex-col">
@@ -65,6 +65,24 @@ export function Sidebar() {
             </Link>
           );
         })}
+
+        {user?.role === "ADMIN" && (
+          <>
+            <Separator className="my-4 opacity-50" />
+            <Link
+              href="/admin"
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                pathname.startsWith("/admin")
+                  ? "bg-blue-500/10 text-blue-500 dark:text-blue-400"
+                  : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+              )}
+            >
+              <LayoutDashboard className="size-4" />
+              Admin Portal
+            </Link>
+          </>
+        )}
       </nav>
 
       {/* Footer */}

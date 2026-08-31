@@ -1,7 +1,8 @@
-import { requireAdmin } from "@/lib/services/auth";
+import { requireAdminPage } from "@/lib/services/auth";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { Card, CardContent } from "@/components/ui/card";
+import { formatDistanceToNow } from "date-fns";
 
 async function getApplications() {
   const host = (await headers()).get("host");
@@ -18,11 +19,7 @@ async function getApplications() {
 }
 
 export default async function AdminApplicationsPage() {
-  try {
-    await requireAdmin();
-  } catch {
-    redirect("/");
-  }
+  await requireAdminPage();
 
   const data = await getApplications();
 

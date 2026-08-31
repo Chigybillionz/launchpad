@@ -55,7 +55,10 @@ export async function POST(request: Request) {
     const opportunity = await OpportunityService.createOpportunity(parsed.data);
     return NextResponse.json({ success: true, data: { opportunity } }, { status: 201 });
   } catch (error) {
-    if (error instanceof Error && error.message === "Unauthorized") {
+    if (error instanceof Error && error.message.includes("Admin authorization required")) {
+      return NextResponse.json({ success: false, error: { code: "FORBIDDEN", message: "Forbidden" } }, { status: 403 });
+    }
+    if (error instanceof Error && error.message.includes("Authentication required")) {
       return NextResponse.json({ success: false, error: { code: "UNAUTHORIZED", message: "Not authenticated" } }, { status: 401 });
     }
     console.error("POST /api/opportunities error:", error);

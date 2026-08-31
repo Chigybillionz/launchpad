@@ -91,6 +91,21 @@ export async function requireAdmin() {
   return user;
 }
 
+import { redirect } from "next/navigation";
+
+export async function requireAdminPage() {
+  try {
+    return await requireAdmin();
+  } catch (error) {
+    if (error instanceof UnauthorizedError) {
+      redirect("/admin/login");
+    } else if (error instanceof ForbiddenError) {
+      redirect("/dashboard");
+    }
+    redirect("/admin/login");
+  }
+}
+
 export async function getCurrentUser() {
   try {
     return await requireAuth();

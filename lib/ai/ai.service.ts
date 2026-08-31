@@ -85,9 +85,13 @@ export const AIService = {
       : ["Advanced Concepts", "Best Practices"];
 
     return {
-      summary: `To succeed as a ${input.opportunity.title}, you need to focus on bridging your gaps in ${missing.join(", ")}.`,
-      priority: "high",
-      skillsToImprove: missing,
+      summary: `To succeed as a ${input.opportunity.title}, you need to focus on bridging your gaps in ${missing.map(m => typeof m === 'string' ? m : m.skill).join(", ")}.`,
+      priority: "HIGH",
+      skillsToImprove: missing.map(m => ({
+        skill: typeof m === 'string' ? m : m.skill,
+        reason: "Core requirement for this opportunity.",
+        estimatedEffort: "MEDIUM" as const,
+      })),
       actionPlan: [
         {
           step: 1,

@@ -1,4 +1,4 @@
-import { requireAdmin } from "@/lib/services/auth";
+import { requireAdminPage } from "@/lib/services/auth";
 import { redirect } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Users, Briefcase, FileText, CheckCircle, Target } from "lucide-react";
@@ -33,11 +33,7 @@ async function getOpportunityStats() {
 }
 
 export default async function AdminDashboardPage() {
-  try {
-    await requireAdmin();
-  } catch {
-    redirect("/");
-  }
+  await requireAdminPage();
 
   const [stats, oppStats] = await Promise.all([getAdminStats(), getOpportunityStats()]);
 

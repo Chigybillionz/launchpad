@@ -1,5 +1,4 @@
-import { requireAdmin } from "@/lib/services/auth";
-import { redirect } from "next/navigation";
+import { requireAdminPage } from "@/lib/services/auth";
 import Link from "next/link";
 import { LayoutDashboard, Users, Briefcase, FileText, ArrowLeft } from "lucide-react";
 
@@ -8,12 +7,7 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  let user;
-  try {
-    user = await requireAdmin();
-  } catch {
-    redirect("/"); // Or to a 403 Access Denied page
-  }
+  const user = await requireAdminPage();
 
   return (
     <div className="flex min-h-screen bg-neutral-950 text-neutral-50">
