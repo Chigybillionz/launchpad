@@ -51,7 +51,7 @@ const LOADING_PHASES = [
 
 export function OpportunityDetailClient({ id }: OpportunityDetailClientProps) {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const [data, setData] = useState<MatchedOpportunity | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -136,9 +136,11 @@ export function OpportunityDetailClient({ id }: OpportunityDetailClientProps) {
       }
     }
 
+    if (authLoading) return;
+
     loadData();
     loadExplanation();
-  }, [id, user]);
+  }, [id, user, authLoading]);
 
   const toggleSave = useCallback(async () => {
     if (!user) {

@@ -15,7 +15,7 @@ interface SkillGapAnalysisProps {
 }
 
 export function SkillGapAnalysis({ opportunityId, onGeneratePlan, isGenerating, hasGenerated }: SkillGapAnalysisProps) {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const [analysis, setAnalysis] = useState<SkillGapAnalysisType | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -45,8 +45,10 @@ export function SkillGapAnalysis({ opportunityId, onGeneratePlan, isGenerating, 
         setLoading(false);
       }
     }
+
+    if (authLoading) return;
     load();
-  }, [opportunityId, user]);
+  }, [opportunityId, user, authLoading]);
 
   if (loading) {
     return (

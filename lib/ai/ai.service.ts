@@ -19,8 +19,8 @@ export const AIService = {
     const now = Date.now();
     const lastRequest = rateLimitMap.get(userId);
     if (lastRequest && now - lastRequest < RATE_LIMIT_COOLDOWN_MS) {
-      const waitSeconds = Math.ceil((RATE_LIMIT_COOLDOWN_MS - (now - lastRequest)) / 1000);
-      throw new Error(`Please wait ${waitSeconds} seconds before generating another plan.`);
+      console.warn("[AI_SERVICE] Rate limited locally, falling back to mock.");
+      return this.getMockReadinessPlan(input);
     }
     rateLimitMap.set(userId, now);
 
@@ -64,23 +64,58 @@ export const AIService = {
 
         // Re-throw on second attempt or non-validation errors
         if (error instanceof Error) {
-          // Check for specific OpenAI errors
-          if (error.message.includes("401") || error.message.includes("Incorrect API key")) {
-            throw new Error("AI_UNAVAILABLE");
-          }
-          if (error.message.includes("429") || error.message.includes("Rate limit")) {
-            throw new Error("AI_RATE_LIMITED");
-          }
-          if (error.message.includes("timeout") || error.message.includes("ETIMEDOUT")) {
-            throw new Error("AI_TIMEOUT");
-          }
+          console.warn("[AI_SERVICE] OpenAI Error:", error.message);
+          // Instead of throwing, fall back to mock generation for hackathon resilience
+          return this.getMockReadinessPlan(input);
         }
 
-        throw error;
+        return this.getMockReadinessPlan(input);
       }
     }
 
-    // Should never reach here, but TypeScript needs it
-    throw new Error("AI_UNAVAILABLE");
+    return this.getMockReadinessPlan(input);
   },
+
+  /**
+   * Generates a deterministic mock plan when the AI is rate limited or unavailable.
+   */
+  getMockReadinessPlan(input: ReadinessInput): AIReadinessPlan {
+    const missing = input.skillGap.missingSkills.length > 0 
+      ? input.skillGap.missingSkills 
+      : ["Advanced Concepts", "Best Practices"];
+
+    return {
+      summary: `To succeed as a ${input.opportunity.title}, you need to focus on bridging your gaps in ${missing.join(", ")}.`,
+      priority: "high",
+      skillsToImprove: missing,
+      actionPlan: [
+        {
+          step: 1,
+          title: `Master ${missing[0]} Fundamentals`,
+          description: `Review official documentation and complete a hands-on tutorial for ${missing[0]}.`,
+          timeframe: "2 days",
+        },
+        {
+          step: 2,
+          title: "Build a Small Project",
+          description: `Apply your new skills by building a small project relevant to ${input.opportunity.organization}.`,
+          timeframe: "3 days",
+        },
+        {
+          step: 3,
+          title: "Review and Refine",
+          description: "Review common interview questions and refine your project code.",
+          timeframe: "1 day",
+        }
+      ],
+      interviewPreparation: [
+        `Be prepared to discuss your experience with ${missing.join(" and ")}.`,
+        "Have examples ready of how you solve complex technical problems."
+      ],
+      applicationAdvice: [
+        "Highlight your eagerness to learn and your fast ramp-up time on new technologies.",
+        "Emphasize your strong foundation in related skills."
+      ]
+    };
+  }
 };

@@ -33,7 +33,7 @@ const CATEGORIES = [
 const EXPERIENCE_LEVELS = ["All", "Beginner", "Intermediate", "Advanced"];
 
 export function OpportunitiesClient() {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -62,7 +62,10 @@ export function OpportunitiesClient() {
 
       const currentPage = isLoadMore ? page + 1 : 1;
       
-      const finalType = type === "Startup Programs" ? "startup program" : 
+      if (authLoading) return;
+      
+      const finalType = type === "All" ? undefined : 
+                        type === "Startup Programs" ? "startup program" : 
                         type === "Grants" ? "grant" :
                         type === "Jobs" ? "job" :
                         type === "Internships" ? "internship" :
@@ -137,7 +140,7 @@ export function OpportunitiesClient() {
       setIsLoading(false);
       setIsLoadingMore(false);
     }
-  }, [search, type, remote, location, experienceLevel, page, user]);
+  }, [search, type, remote, location, experienceLevel, page, user, authLoading]);
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
