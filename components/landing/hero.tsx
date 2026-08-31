@@ -5,6 +5,7 @@ import { ArrowRight, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/layout/container";
+import { HeroVisual } from "./hero-visual";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -17,7 +18,7 @@ const fadeUp = {
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden py-24 sm:py-32 lg:py-40">
+    <section className="relative overflow-hidden pt-24 sm:pt-32 lg:pt-40 pb-16 sm:pb-24">
       {/* Background accent */}
       <div
         aria-hidden
@@ -28,7 +29,7 @@ export function Hero() {
 
       <Container size="sm">
         <motion.div
-          className="flex flex-col items-center text-center"
+          className="flex flex-col items-center text-center relative z-20"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
@@ -82,6 +83,9 @@ export function Hero() {
           </motion.div>
         </motion.div>
       </Container>
+      
+      {/* 5-Image Collage Visual */}
+      <HeroVisual />
     </section>
   );
 }
