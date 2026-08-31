@@ -1,5 +1,4 @@
 import { requireAdminPage } from "@/lib/services/auth";
-import { redirect } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Users, Briefcase, FileText, CheckCircle, Target } from "lucide-react";
 import { headers } from "next/headers";

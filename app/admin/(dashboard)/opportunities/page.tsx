@@ -1,13 +1,9 @@
 import { requireAdminPage } from "@/lib/services/auth";
-import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { formatDistanceToNow } from "date-fns";
-import { Opportunity } from "@prisma/client";
 
 async function getOpportunities() {
   const host = (await headers()).get("host");

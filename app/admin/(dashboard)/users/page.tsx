@@ -1,5 +1,4 @@
 import { requireAdminPage } from "@/lib/services/auth";
-import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { Card, CardContent } from "@/components/ui/card";
 
