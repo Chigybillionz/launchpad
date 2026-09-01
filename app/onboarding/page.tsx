@@ -32,6 +32,7 @@ export default function OnboardingPage() {
 
   useEffect(() => {
     if (user?.name && !data.name) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setData((prev) => ({ ...prev, name: user.name }));
     }
   }, [user, data.name]);
