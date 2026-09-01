@@ -158,7 +158,7 @@ export default function DashboardPage() {
         <div className="space-y-6 lg:col-span-2">
           
           {/* Top Opportunities */}
-          <Card className="flex flex-col h-full">
+          <Card className="flex flex-col">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <div className="space-y-1">
                 <CardTitle>Top Opportunities</CardTitle>

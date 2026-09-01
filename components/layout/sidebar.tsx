@@ -13,6 +13,17 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const SIDEBAR_ITEMS = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -87,13 +98,32 @@ export function Sidebar() {
 
       {/* Footer */}
       <div className="border-t border-border/60 px-5 py-4 flex flex-col gap-3">
-        <button
-          onClick={logout}
-          className="flex items-center gap-3 text-sm font-medium text-sidebar-foreground/70 transition-colors hover:text-sidebar-foreground"
-        >
-          <LogOut className="size-4" />
-          Log out
-        </button>
+        <Dialog>
+          <DialogTrigger
+            render={
+              <button className="flex items-center gap-3 text-sm font-medium text-sidebar-foreground/70 transition-colors hover:text-sidebar-foreground">
+                <LogOut className="size-4" />
+                Log out
+              </button>
+            }
+          />
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Sign out</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to log out of your account?
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <DialogClose render={<Button variant="outline" />}>
+                Cancel
+              </DialogClose>
+              <Button variant="destructive" onClick={logout}>
+                Log out
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
         <p className="text-xs text-muted-foreground">
           &copy; {new Date().getFullYear()} Launchpad
         </p>

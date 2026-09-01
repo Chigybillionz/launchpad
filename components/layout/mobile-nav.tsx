@@ -12,6 +12,17 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const MOBILE_NAV_ITEMS = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -59,13 +70,32 @@ export function MobileNav() {
             </Link>
           );
         })}
-        <button
-          onClick={logout}
-          className="flex flex-col items-center gap-0.5 rounded-lg px-3 py-1.5 text-[11px] font-medium transition-colors text-muted-foreground hover:text-foreground"
-        >
-          <LogOut className="size-5 transition-colors text-muted-foreground" />
-          <span>Logout</span>
-        </button>
+        <Dialog>
+          <DialogTrigger
+            render={
+              <button className="flex flex-col items-center gap-0.5 rounded-lg px-3 py-1.5 text-[11px] font-medium transition-colors text-muted-foreground hover:text-foreground">
+                <LogOut className="size-5 transition-colors text-muted-foreground" />
+                <span>Logout</span>
+              </button>
+            }
+          />
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Sign out</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to log out of your account?
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <DialogClose render={<Button variant="outline" />}>
+                Cancel
+              </DialogClose>
+              <Button variant="destructive" onClick={logout}>
+                Log out
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </nav>
   );

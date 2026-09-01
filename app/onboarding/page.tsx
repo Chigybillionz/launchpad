@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, Loader2 } from "lucide-react";
 import { Navbar } from "@/components/layout/navbar";
@@ -29,6 +29,12 @@ export default function OnboardingPage() {
   const [data, setData] = useState<OnboardingData>(INITIAL_ONBOARDING_DATA);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (user?.name && !data.name) {
+      setData((prev) => ({ ...prev, name: user.name }));
+    }
+  }, [user, data.name]);
 
   const totalSteps = ONBOARDING_STEPS.length;
   const progress = (currentStep / totalSteps) * 100;

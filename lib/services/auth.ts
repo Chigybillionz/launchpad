@@ -69,6 +69,7 @@ export async function requireAuth() {
           goals: true,
           workPreferences: true,
           avatarUrl: true,
+          profileCompleted: true,
           createdAt: true,
         },
       },
