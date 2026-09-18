@@ -9,11 +9,15 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { NAV_ITEMS } from "@/lib/constants";
 
+import { useAuth } from "@/lib/auth-context";
+
 export function Navbar() {
   const pathname = usePathname();
+  const { user } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const isDashboard = pathname.startsWith("/dashboard");
+  const targetHref = user ? "/dashboard/opportunities" : "/quiz";
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/60 surface-glass">
@@ -56,9 +60,16 @@ export function Navbar() {
         {/* Right side */}
         <div className="flex items-center gap-2">
           {!isDashboard && (
-            <Button size="sm" render={<Link href="/onboarding" />}>
-              Find My Opportunities
-            </Button>
+            <>
+              {!user && (
+                <Button variant="ghost" size="sm" render={<Link href="/login" />} className="hidden sm:inline-flex">
+                  Log in
+                </Button>
+              )}
+              <Button size="sm" render={<Link href={targetHref} />}>
+                Find My Opportunities
+              </Button>
+            </>
           )}
 
           {/* Mobile hamburger */}
