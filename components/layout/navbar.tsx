@@ -62,8 +62,8 @@ export function Navbar() {
           {!isDashboard && (
             <>
               {!user && (
-                <Button variant="ghost" size="sm" render={<Link href="/login" />} className="hidden sm:inline-flex">
-                  Log in
+                <Button variant="ghost" size="sm" render={<Link href="/register" />} className="hidden sm:inline-flex">
+                  Create Account
                 </Button>
               )}
               <Button size="sm" render={<Link href={targetHref} />}>
