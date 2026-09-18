@@ -24,7 +24,7 @@ export function StepBasicInfo({ data, updateData, errors }: StepBasicInfoProps) 
           </label>
           <Input
             id="name"
-            placeholder="chigozie okorie"
+            placeholder="full name"
             value={data.name}
             onChange={(e) => updateData({ name: e.target.value })}
             className={errors.name ? "border-destructive" : ""}

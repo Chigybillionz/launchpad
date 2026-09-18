@@ -1,16 +1,17 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/lib/auth-context";
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirectTo");
   const { register } = useAuth();
 
   const [name, setName] = useState("");
@@ -45,7 +46,9 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       const user = await register(name, email, password);
-      if (!user.profileCompleted) {
+      if (redirectTo) {
+        router.push(redirectTo);
+      } else if (!user.profileCompleted) {
         router.push("/onboarding");
       } else {
         router.push("/dashboard");
@@ -57,6 +60,8 @@ export default function RegisterPage() {
       setLoading(false);
     }
   }
+
+  const loginHref = redirectTo ? `/login?redirectTo=${encodeURIComponent(redirectTo)}` : "/login";
 
   return (
     <div className="w-full max-w-sm space-y-6">
@@ -156,21 +161,23 @@ export default function RegisterPage() {
         </Button>
       </form>
 
-      <Separator />
-
-      <Button variant="outline" className="w-full" disabled>
-        Continue with Google
-      </Button>
-
       <p className="text-center text-sm text-muted-foreground">
         Already have an account?{" "}
         <Link
-          href="/login"
+          href={loginHref}
           className="font-medium text-foreground hover:underline"
         >
           Sign in
         </Link>
       </p>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div className="w-full max-w-sm flex justify-center py-8"><Loader2 className="size-6 animate-spin text-muted-foreground" /></div>}>
+      <RegisterForm />
+    </Suspense>
   );
 }

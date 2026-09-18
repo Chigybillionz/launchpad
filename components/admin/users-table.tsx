@@ -178,18 +178,22 @@ export function UsersTable({ initialUsers }: { initialUsers: User[] }) {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                              <span className="sr-only">Open menu</span>
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
+                          <DropdownMenuTrigger
+                            render={
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            }
+                          />
                           <DropdownMenuContent align="end" className="bg-neutral-900 border-neutral-800 text-white">
-                            <DropdownMenuItem asChild>
-                              <Link href={`/admin/users/${u.id}`} className="cursor-pointer flex items-center">
-                                <Eye className="mr-2 h-4 w-4" /> View Profile
-                              </Link>
-                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              render={
+                                <Link href={`/admin/users/${u.id}`} className="cursor-pointer flex items-center">
+                                  <Eye className="mr-2 h-4 w-4" /> View Profile
+                                </Link>
+                              }
+                            />
                             <DropdownMenuItem onClick={() => openEdit(u)} className="cursor-pointer flex items-center">
                               <Pencil className="mr-2 h-4 w-4" /> Edit User
                             </DropdownMenuItem>

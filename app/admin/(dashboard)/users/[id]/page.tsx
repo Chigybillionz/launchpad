@@ -164,7 +164,7 @@ export default async function AdminUserDetailPage({ params }: { params: Promise<
                         <p className="text-sm text-neutral-400">{app.opportunity?.organization}</p>
                         <p className="text-xs text-neutral-500 mt-1">Applied on {new Date(app.appliedAt).toLocaleDateString()}</p>
                       </div>
-                      <ApplicationStatusBadge status={app.status} />
+                      <ApplicationStatusBadge status={app.status as any} />
                     </div>
                   ))}
                   {user.applications.length > 5 && (

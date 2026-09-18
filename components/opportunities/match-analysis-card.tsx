@@ -1,13 +1,37 @@
 import { MatchResult } from "@/types/match";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { Sparkles, Gamepad2 } from "lucide-react";
 
 interface MatchAnalysisCardProps {
-  match: MatchResult;
+  match?: MatchResult;
 }
 
 export function MatchAnalysisCard({ match }: MatchAnalysisCardProps) {
+  if (!match) {
+    return (
+      <Card className="overflow-hidden border-primary/20 bg-gradient-to-b from-primary/5 to-transparent">
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-2 mb-1">
+            <Gamepad2 className="h-5 w-5 text-primary" />
+            <CardTitle>Calculate Your Match</CardTitle>
+          </div>
+          <CardDescription className="text-sm text-muted-foreground">
+            Take our 60-second quiz to calculate your personalized match breakdown across skills, experience, and goals.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button className="w-full" render={<Link href="/quiz" />}>
+            <Sparkles className="mr-2 h-4 w-4" />
+            Take 60s Match Quiz
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const { score, label, reasons, breakdown } = match;
 
   let colorClass = "text-muted-foreground";

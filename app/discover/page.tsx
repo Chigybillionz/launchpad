@@ -24,8 +24,8 @@ export default function GuestDiscoverPage() {
               </p>
             </div>
             <div className="flex gap-3 shrink-0">
-              <Button variant="outline" render={<Link href="/login" />}>Log In</Button>
-              <Button render={<Link href="/register" />}>Create Free Account</Button>
+              <Button variant="outline" render={<Link href="/login?redirectTo=/discover" />}>Log In</Button>
+              <Button render={<Link href="/register?redirectTo=/discover" />}>Create Free Account</Button>
             </div>
           </div>
 

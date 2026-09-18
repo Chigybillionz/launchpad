@@ -89,10 +89,6 @@ export function OpportunitiesClient() {
         });
       } else {
         const guestProfileData = localStorage.getItem("launchpad_guest_profile");
-        if (!guestProfileData) {
-          throw new Error("No guest profile found.");
-        }
-        const guestProfile = JSON.parse(guestProfileData);
 
         const searchParams = new URLSearchParams();
         if (search) searchParams.set("search", search);
@@ -103,33 +99,53 @@ export function OpportunitiesClient() {
         searchParams.set("page", currentPage.toString());
         searchParams.set("limit", "6");
 
-        const res = await fetch(`/api/discover?${searchParams.toString()}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(guestProfile),
-        });
+        if (guestProfileData) {
+          const guestProfile = JSON.parse(guestProfileData);
 
-        if (!res.ok) {
-          const errData = await res.json();
-          throw new Error(errData.error?.message || "Failed to fetch discoveries");
+          const res = await fetch(`/api/discover?${searchParams.toString()}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(guestProfile),
+          });
+
+          if (!res.ok) {
+            const errData = await res.json();
+            throw new Error(errData.error?.message || "Failed to fetch discoveries");
+          }
+
+          const json = await res.json();
+          response = {
+            data: json.data.matches.map((m: MatchedOpportunity) => ({
+              ...m.opportunity,
+              matchScore: m.match.score,
+            })),
+            total: json.data.pagination.total,
+            page: json.data.pagination.page,
+            limit: json.data.pagination.limit,
+            hasMore: json.data.pagination.page < json.data.pagination.totalPages,
+          };
+        } else {
+          // No guest profile yet -> browse general opportunities
+          const res = await fetch(`/api/opportunities?${searchParams.toString()}`);
+          if (!res.ok) {
+            throw new Error("Failed to fetch opportunities");
+          }
+          const json = await res.json();
+          response = {
+            data: json.data.opportunities,
+            total: json.data.pagination.total,
+            page: json.data.pagination.page,
+            limit: json.data.pagination.limit,
+            hasMore: json.data.pagination.page < json.data.pagination.totalPages,
+          };
         }
-
-        const json = await res.json();
-        response = {
-          data: json.data.matches,
-          total: json.data.pagination.total,
-          page: json.data.pagination.page,
-          limit: json.data.pagination.limit,
-          hasMore: json.data.pagination.page < json.data.pagination.totalPages,
-        };
       }
 
       if (isLoadMore) {
-        const mapped = response.data.map((m: MatchedOpportunity) => ({ ...m.opportunity, matchScore: m.match.score }));
-        setOpportunities((prev) => [...prev, ...mapped]);
+        setOpportunities((prev) => [...prev, ...response.data]);
         setPage(currentPage);
       } else {
-        setOpportunities(response.data.map((m: MatchedOpportunity) => ({ ...m.opportunity, matchScore: m.match.score })));
+        setOpportunities(response.data);
       }
       
       setHasMore(response.hasMore);

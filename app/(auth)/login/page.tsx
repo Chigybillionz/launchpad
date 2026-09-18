@@ -1,16 +1,17 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/lib/auth-context";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirectTo");
   const { login } = useAuth();
 
   const [email, setEmail] = useState("");
@@ -35,7 +36,9 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const user = await login(email, password);
-      if (!user.profileCompleted) {
+      if (redirectTo) {
+        router.push(redirectTo);
+      } else if (!user.profileCompleted) {
         router.push("/onboarding");
       } else {
         router.push("/dashboard");
@@ -47,6 +50,8 @@ export default function LoginPage() {
       setLoading(false);
     }
   }
+
+  const registerHref = redirectTo ? `/register?redirectTo=${encodeURIComponent(redirectTo)}` : "/register";
 
   return (
     <div className="w-full max-w-sm space-y-6">
@@ -124,23 +129,24 @@ export default function LoginPage() {
         </Button>
       </form>
 
-      <Separator />
-
-      {/* Google placeholder */}
-      <Button variant="outline" className="w-full" disabled>
-        Continue with Google
-      </Button>
-
       {/* Link to register */}
       <p className="text-center text-sm text-muted-foreground">
         Don&apos;t have an account?{" "}
         <Link
-          href="/register"
+          href={registerHref}
           className="font-medium text-foreground hover:underline"
         >
           Sign up
         </Link>
       </p>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="w-full max-w-sm flex justify-center py-8"><Loader2 className="size-6 animate-spin text-muted-foreground" /></div>}>
+      <LoginForm />
+    </Suspense>
   );
 }

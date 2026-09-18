@@ -12,14 +12,17 @@ import {
   BookmarkMinus, 
   ArrowLeft,
   Loader2,
-  AlertTriangle
+  AlertTriangle,
+  Share2,
+  Copy,
+  Check
 } from "lucide-react";
 
 import { OpportunitiesService } from "@/lib/services/opportunities";
 import { SavedService } from "@/lib/services/saved";
 import { ApplicationsService } from "@/lib/services/applications";
 import { ReadinessService } from "@/lib/services/readiness";
-import { MatchedOpportunity, MatchExplanation } from "@/types/match";
+import { MatchedOpportunity, MatchExplanation, MatchResult } from "@/types/match";
 import { ReadinessApiResponse } from "@/types/readiness";
 import { Application } from "@/types/saved";
 import { Button } from "@/components/ui/button";
@@ -52,7 +55,7 @@ const LOADING_PHASES = [
 export function OpportunityDetailClient({ id }: OpportunityDetailClientProps) {
   const router = useRouter();
   const { user, isLoading: authLoading } = useAuth();
-  const [data, setData] = useState<MatchedOpportunity | null>(null);
+  const [data, setData] = useState<{ opportunity: any; match?: MatchResult } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showGuestPrompt, setShowGuestPrompt] = useState(false);
@@ -70,6 +73,7 @@ export function OpportunityDetailClient({ id }: OpportunityDetailClientProps) {
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
   const [planError, setPlanError] = useState<string | null>(null);
   const [loadingPhase, setLoadingPhase] = useState(0);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -87,17 +91,33 @@ export function OpportunityDetailClient({ id }: OpportunityDetailClientProps) {
           setApplication(applications.items.find((item) => item.opportunityId === id) || null);
         } else {
           const guestProfileData = localStorage.getItem("launchpad_guest_profile");
-          if (!guestProfileData) throw new Error("No guest profile found.");
-          const guestProfile = JSON.parse(guestProfileData);
+          if (guestProfileData) {
+            try {
+              const guestProfile = JSON.parse(guestProfileData);
+              const res = await fetch(`/api/discover/${id}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(guestProfile),
+              });
+              if (res.ok) {
+                const json = await res.json();
+                setData(json.data);
+                setIsSaved(false);
+                setApplication(null);
+                return;
+              }
+            } catch (err) {
+              console.error("Failed to parse guest profile", err);
+            }
+          }
 
-          const res = await fetch(`/api/discover/${id}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(guestProfile),
-          });
+          // Fallback: guest has no profile yet -> fetch pure opportunity directly
+          const res = await fetch(`/api/opportunities/${id}`);
           if (!res.ok) throw new Error("Failed to load opportunity details");
           const json = await res.json();
-          setData(json.data);
+          setData({
+            opportunity: json.data.opportunity,
+          });
           setIsSaved(false);
           setApplication(null);
         }
@@ -117,7 +137,10 @@ export function OpportunityDetailClient({ id }: OpportunityDetailClientProps) {
           setExplanation(explData.explanation);
         } else {
           const guestProfileData = localStorage.getItem("launchpad_guest_profile");
-          if (!guestProfileData) return;
+          if (!guestProfileData) {
+            setIsExplaining(false);
+            return;
+          }
           const guestProfile = JSON.parse(guestProfileData);
 
           const res = await fetch(`/api/discover/${id}/explanation`, {
@@ -258,7 +281,24 @@ export function OpportunityDetailClient({ id }: OpportunityDetailClientProps) {
     year: "numeric",
   });
 
-  return (
+    const currentPath = typeof window !== "undefined" ? window.location.pathname : `/discover/opportunities/${id}`;
+
+    const handleShareWhatsApp = () => {
+      const origin = typeof window !== "undefined" ? window.location.origin : "";
+      const shareUrl = `${origin}/discover/opportunities/${id}`;
+      const text = `Check out this opportunity: ${opportunity.title} at ${opportunity.organization} on Launchpad!\n\n${shareUrl}`;
+      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, "_blank");
+    };
+
+    const handleCopyLink = () => {
+      const origin = typeof window !== "undefined" ? window.location.origin : "";
+      const shareUrl = `${origin}/discover/opportunities/${id}`;
+      navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    };
+
+    return (
     <div className="space-y-6">
       <Dialog open={showGuestPrompt} onOpenChange={setShowGuestPrompt}>
         <DialogContent>
@@ -269,21 +309,47 @@ export function OpportunityDetailClient({ id }: OpportunityDetailClientProps) {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="mt-4">
-            <Button variant="outline" onClick={() => router.push("/login")}>Log In</Button>
-            <Button onClick={() => router.push("/register")}>Create Account</Button>
+            <Button variant="outline" onClick={() => router.push(`/login?redirectTo=${encodeURIComponent(currentPath)}`)}>Log In</Button>
+            <Button onClick={() => router.push(`/register?redirectTo=${encodeURIComponent(currentPath)}`)}>Create Account</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      <Button 
-        variant="ghost" 
-        size="sm" 
-        onClick={() => router.back()}
-        className="text-muted-foreground hover:text-foreground mb-2"
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Back
-      </Button>
+      <div className="flex items-center justify-between gap-4 mb-2">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => router.back()}
+          className="text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back
+        </Button>
+
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleShareWhatsApp}
+            className="text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/10 text-xs font-semibold"
+            title="Share this job on WhatsApp"
+          >
+            <Share2 className="mr-1.5 h-3.5 w-3.5" />
+            Share to WhatsApp
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleCopyLink}
+            className="text-xs font-semibold"
+            title="Copy link to clipboard"
+          >
+            {copied ? <Check className="mr-1.5 h-3.5 w-3.5 text-emerald-500" /> : <Copy className="mr-1.5 h-3.5 w-3.5" />}
+            {copied ? "Copied!" : "Copy Link"}
+          </Button>
+        </div>
+      </div>
 
       {/* Header Section */}
       <div className="rounded-xl border bg-card p-6 md:p-8">
@@ -381,6 +447,7 @@ export function OpportunityDetailClient({ id }: OpportunityDetailClientProps) {
               <h2 className="text-lg font-semibold border-b pb-2">Skill Requirements</h2>
               <SkillGapAnalysis 
                 opportunityId={id} 
+                requiredSkills={opportunity.requiredSkills}
                 onGeneratePlan={handleGeneratePlan}
                 isGenerating={isGeneratingPlan}
                 hasGenerated={!!readinessResponse}

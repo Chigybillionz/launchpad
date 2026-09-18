@@ -70,7 +70,7 @@ export function Hero() {
             variants={fadeUp}
             className="mt-10 flex flex-col items-center gap-4"
           >
-            <Button size="lg" render={<Link href="/onboarding" />}>
+            <Button size="lg" render={<Link href="/quiz" />}>
               Find My Opportunities
               <ArrowRight className="ml-1.5 size-4" />
             </Button>

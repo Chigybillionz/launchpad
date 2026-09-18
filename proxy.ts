@@ -8,7 +8,7 @@ const protectedPaths = [
 ]
 
 export function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl
+  const { pathname, search } = request.nextUrl
   
   // Check if the path is in the protected list
   const isProtectedPath = protectedPaths.some(path => 
@@ -20,9 +20,18 @@ export function proxy(request: NextRequest) {
     const session = request.cookies.get('launchpad_session')
     
     if (!session) {
-      // If not authenticated, redirect to the register/login screen
+      // If someone is viewing an opportunity link under /dashboard, redirect to the public /discover view
+      if (pathname.startsWith('/dashboard/opportunities/')) {
+        const oppId = pathname.replace('/dashboard/opportunities/', '');
+        const url = request.nextUrl.clone();
+        url.pathname = `/discover/opportunities/${oppId}`;
+        return NextResponse.redirect(url);
+      }
+
+      // If not authenticated, redirect to the register screen with redirectTo preserved
       const url = request.nextUrl.clone()
       url.pathname = '/register'
+      url.searchParams.set('redirectTo', pathname + search)
       return NextResponse.redirect(url)
     }
   }
@@ -43,3 +52,4 @@ export const config = {
     '/((?!api|_next/static|_next/image|favicon.ico).*)',
   ],
 }
+

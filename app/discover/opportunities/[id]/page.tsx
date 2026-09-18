@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { PageHeader } from "@/components/layout/page-header";
 import { OpportunityDetailClient } from "@/components/opportunities/opportunity-detail-client";
 import { Navbar } from "@/components/layout/navbar";
@@ -5,6 +6,46 @@ import { Footer } from "@/components/layout/footer";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ShieldAlert } from "lucide-react";
+import { prisma } from "@/lib/prisma";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const opp = await prisma.opportunity.findUnique({
+    where: { id },
+  });
+
+  if (!opp) {
+    return {
+      title: "Opportunity | Launchpad",
+      description: "Discover tech opportunities matched to your skills on Launchpad.",
+    };
+  }
+
+  const title = `${opp.title} at ${opp.organization} | Launchpad`;
+  const skillsText = opp.requiredSkills.slice(0, 4).join(", ");
+  const description = `${opp.organization} is hiring for ${opp.title} (${opp.remote ? "Remote" : opp.location}). Required skills: ${skillsText}. Check your interactive game score & skill match on Launchpad!`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      siteName: "Launchpad",
+      locale: "en_US",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+    },
+  };
+}
 
 export default async function GuestOpportunityDetailPage({
   params,
@@ -12,6 +53,7 @@ export default async function GuestOpportunityDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const destination = `/discover/opportunities/${id}`;
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -30,8 +72,8 @@ export default async function GuestOpportunityDetailPage({
               </p>
             </div>
             <div className="flex gap-3 shrink-0">
-              <Button variant="outline" render={<Link href="/login" />}>Log In</Button>
-              <Button render={<Link href="/register" />}>Create Free Account</Button>
+              <Button variant="outline" render={<Link href={`/login?redirectTo=${encodeURIComponent(destination)}`} />}>Log In</Button>
+              <Button render={<Link href={`/register?redirectTo=${encodeURIComponent(destination)}`} />}>Create Free Account</Button>
             </div>
           </div>
 
