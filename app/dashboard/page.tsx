@@ -42,12 +42,15 @@ export default function DashboardPage() {
           ApplicationsService.getDashboardStats().catch(() => null)
         ]);
 
-        if (matchesData) {
-          dashboardData.topOpportunities = matchesData.data.map((m: MatchedOpportunity) => ({
-            ...m.opportunity,
-            matchPercentage: m.match.score,
-            recommendationReason: m.recommendationReason
-          }));
+        if (matchesData?.data) {
+          dashboardData.topOpportunities = matchesData.data.map((item: any) => {
+            const opp = item.opportunity || item;
+            return {
+              ...opp,
+              matchPercentage: item.match?.score ?? opp.matchScore ?? 0,
+              recommendationReason: item.recommendationReason ?? opp.recommendationReason,
+            };
+          });
         }
 
         setData(dashboardData);
@@ -193,7 +196,7 @@ export default function DashboardPage() {
                       </div>
                       <div className="flex items-center gap-1">
                         <Calendar className="size-3.5" />
-                        <span>Ends {new Date(opp.deadline).toLocaleDateString()}</span>
+                        <span>Ends {opp.deadline ? (isNaN(new Date(opp.deadline).getTime()) ? "Flexible" : new Date(opp.deadline).toLocaleDateString()) : "Flexible"}</span>
                       </div>
                     </div>
                     
@@ -262,7 +265,7 @@ export default function DashboardPage() {
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <p className="text-sm font-semibold">{application.opportunity?.title}</p>
-                          <p className="text-xs text-muted-foreground">{new Date(application.appliedAt).toLocaleDateString()}</p>
+                          <p className="text-xs text-muted-foreground">{application.appliedAt ? (isNaN(new Date(application.appliedAt).getTime()) ? "Recently" : new Date(application.appliedAt).toLocaleDateString()) : "Recently"}</p>
                         </div>
                         <ApplicationStatusBadge status={application.status} />
                       </div>

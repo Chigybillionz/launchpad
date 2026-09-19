@@ -141,11 +141,22 @@ export function OpportunitiesClient() {
         }
       }
 
+      const normalizedItems = (response?.data || []).map((item: any) => {
+        if (item.opportunity) {
+          return {
+            ...item.opportunity,
+            matchScore: item.match?.score ?? item.opportunity.matchScore,
+            recommendationReason: item.recommendationReason,
+          };
+        }
+        return item;
+      });
+
       if (isLoadMore) {
-        setOpportunities((prev) => [...prev, ...response.data]);
+        setOpportunities((prev) => [...prev, ...normalizedItems]);
         setPage(currentPage);
       } else {
-        setOpportunities(response.data);
+        setOpportunities(normalizedItems);
       }
       
       setHasMore(response.hasMore);

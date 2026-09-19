@@ -101,9 +101,9 @@ export function ApplicationDetailClient({ id }: ApplicationDetailClientProps) {
             <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
               <span className="flex items-center gap-1">
                 <Calendar className="size-4" />
-                Applied {new Date(application.appliedAt).toLocaleDateString()}
+                Applied {application.appliedAt ? (isNaN(new Date(application.appliedAt).getTime()) ? "Recently" : new Date(application.appliedAt).toLocaleDateString()) : "Recently"}
               </span>
-              <span>Last updated {new Date(application.updatedAt).toLocaleDateString()}</span>
+              <span>Last updated {application.updatedAt ? (isNaN(new Date(application.updatedAt).getTime()) ? "Recently" : new Date(application.updatedAt).toLocaleDateString()) : "Recently"}</span>
             </div>
           </div>
           <div className="flex flex-col gap-2">

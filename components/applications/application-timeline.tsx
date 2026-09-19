@@ -18,7 +18,10 @@ const successFlow: { status: ApplicationStatus; label: string }[] = [
 ];
 
 function formatDate(value: string) {
-  return new Date(value).toLocaleDateString("en-US", {
+  if (!value) return "N/A";
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return "N/A";
+  return d.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",

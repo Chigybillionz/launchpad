@@ -29,12 +29,25 @@ export const OpportunitiesService = {
       throw new Error(json.error?.message || "Failed to fetch opportunities");
     }
 
+    const matches = json.data?.matches || [];
+    const normalizedData = matches.map((m: any) => {
+      if (m.opportunity) {
+        return {
+          ...m.opportunity,
+          matchScore: m.match?.score ?? m.opportunity.matchScore,
+          match: m.match,
+          recommendationReason: m.recommendationReason,
+        };
+      }
+      return m;
+    });
+
     return {
-      data: json.data.matches,
-      total: json.data.pagination.total,
-      page: json.data.pagination.page,
-      limit: json.data.pagination.limit,
-      hasMore: json.data.pagination.page < json.data.pagination.totalPages,
+      data: normalizedData,
+      total: json.data?.pagination?.total ?? normalizedData.length,
+      page: json.data?.pagination?.page ?? 1,
+      limit: json.data?.pagination?.limit ?? 10,
+      hasMore: json.data?.pagination ? json.data.pagination.page < json.data.pagination.totalPages : false,
     };
   },
 

@@ -275,11 +275,18 @@ export function OpportunityDetailClient({ id }: OpportunityDetailClientProps) {
   }
 
   const { opportunity, match } = data;
-  const formattedDeadline = new Date(opportunity.deadline).toLocaleDateString("en-US", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+  const formattedDeadline = opportunity?.deadline
+    ? (() => {
+        const d = new Date(opportunity.deadline);
+        return isNaN(d.getTime())
+          ? "Flexible"
+          : d.toLocaleDateString("en-US", {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            });
+      })()
+    : "Flexible";
 
     const currentPath = typeof window !== "undefined" ? window.location.pathname : `/discover/opportunities/${id}`;
 

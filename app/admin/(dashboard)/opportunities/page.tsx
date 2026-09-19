@@ -62,7 +62,7 @@ export default async function AdminOpportunitiesPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-neutral-400">
-                        {new Date(opp.deadline).toLocaleDateString()}
+                        {opp.deadline ? (isNaN(new Date(opp.deadline).getTime()) ? "Flexible" : new Date(opp.deadline).toLocaleDateString()) : "Flexible"}
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex justify-end gap-2">

@@ -19,7 +19,10 @@ interface OpportunityCardProps {
 }
 
 export function OpportunityCard({ opportunity }: OpportunityCardProps) {
+  // Defensively unwrap in case caller passes { opportunity: {...}, match: {...} }
+  const rawOpp = (opportunity as any)?.opportunity || opportunity;
   const {
+    id,
     title,
     organization,
     type,
@@ -28,14 +31,23 @@ export function OpportunityCard({ opportunity }: OpportunityCardProps) {
     deadline,
     matchScore,
     requiredSkills,
-  } = opportunity;
+  } = rawOpp;
 
-  // Format date
-  const formattedDeadline = new Date(deadline).toLocaleDateString("en-US", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
+  const score = matchScore ?? (opportunity as any)?.match?.score;
+
+  // Format date defensively
+  const formattedDeadline = deadline
+    ? (() => {
+        const d = new Date(deadline);
+        return isNaN(d.getTime())
+          ? "Flexible"
+          : d.toLocaleDateString("en-US", {
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+            });
+      })()
+    : "Flexible";
 
   const pathname = usePathname();
   const basePath = pathname.startsWith("/discover") ? "/discover/opportunities" : "/dashboard/opportunities";
@@ -51,9 +63,9 @@ export function OpportunityCard({ opportunity }: OpportunityCardProps) {
             <CardTitle className="line-clamp-2 text-lg" title={title}>{title}</CardTitle>
             <CardDescription className="text-sm font-medium text-foreground">{organization}</CardDescription>
           </div>
-          {matchScore !== undefined && (
+          {score !== undefined && (
             <div className="shrink-0 mt-1">
-              <MatchScore score={matchScore} />
+              <MatchScore score={score} />
             </div>
           )}
         </div>
@@ -75,7 +87,7 @@ export function OpportunityCard({ opportunity }: OpportunityCardProps) {
           <div className="space-y-2">
             <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Relevant Skills</div>
             <div className="flex flex-wrap gap-1.5">
-              {requiredSkills.slice(0, 3).map((skill) => (
+              {requiredSkills.slice(0, 3).map((skill: string) => (
                 <Badge key={skill} variant="outline" className="text-[10px] py-0 px-1.5 h-4">
                   {skill}
                 </Badge>
@@ -92,7 +104,7 @@ export function OpportunityCard({ opportunity }: OpportunityCardProps) {
 
       <CardFooter className="pt-4 pb-4 flex gap-2">
         <Button 
-          render={<Link href={`${basePath}/${opportunity.id}`} />} 
+          render={<Link href={`${basePath}/${id}`} />} 
           className="flex-1 shadow-xs hover:shadow-md transition-all duration-300" 
           variant="default"
         >

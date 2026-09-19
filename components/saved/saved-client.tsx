@@ -92,9 +92,9 @@ export function SavedClient() {
                   <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <Calendar className="size-4" />
-                      Saved {new Date(createdAt).toLocaleDateString()}
+                      Saved {createdAt ? (isNaN(new Date(createdAt).getTime()) ? "Recently" : new Date(createdAt).toLocaleDateString()) : "Recently"}
                     </span>
-                    <span>Deadline {new Date(opportunity.deadline).toLocaleDateString()}</span>
+                    <span>Deadline {opportunity?.deadline ? (isNaN(new Date(opportunity.deadline).getTime()) ? "Flexible" : new Date(opportunity.deadline).toLocaleDateString()) : "Flexible"}</span>
                   </div>
                 </div>
                 <div className="flex flex-col gap-2 sm:flex-row md:flex-col">
